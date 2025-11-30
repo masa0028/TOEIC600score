@@ -38,6 +38,7 @@ let mistakes = [];
 
 // ▼ 効果音要素
 const seCorrect = $("se-correct");
+const seNext    = $("se-next");
 const seWrong   = $("se-wrong");
 const seClick   = $("se-click");
 
@@ -107,7 +108,7 @@ function render(){
     btn.className = "choice-btn";
     btn.textContent = c;
     btn.onclick = () => {
-      playSE(seClick);
+      playSE(seClick);  // タップ音
       answer(btn, c, q.meaning_jp, q);
     };
     box.appendChild(btn);
@@ -122,12 +123,12 @@ function answer(btn, choice, correctAns, q){
     correct++;
     btn.classList.add("correct");
     $("feedback").textContent = "正解！";
-    playSE(seCorrect);
+    playSE(seCorrect);  // ★ ピンポン音
   } else {
     btn.classList.add("wrong");
     $("feedback").textContent = `不正解… 正解: ${correctAns}`;
     mistakes.push(q);
-    playSE(seWrong);
+    playSE(seWrong);    // ★ ブザー音
   }
 
   updateProgress(idx + 1);
@@ -169,7 +170,7 @@ function finish(){
 $("btn-start").onclick = startQuiz;
 
 $("btn-next").onclick = () => {
-  playSE(seClick);
+  playSE(seNext);   // ★ 「次へ」で明るくステージ進行音
   idx++;
   render();
 };
