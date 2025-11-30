@@ -8,6 +8,7 @@
 </head>
 <body>
   <div id="app">
+    <!-- ホーム画面 -->
     <section id="screen-home" class="screen active">
       <h1 class="app-title">TOEIC 600 Quest</h1>
       <p class="app-sub">Day1：必須単語20語トレーニング</p>
@@ -26,6 +27,7 @@
       <button id="btn-review" class="btn secondary" disabled>復習モード</button>
     </section>
 
+    <!-- クイズ画面 -->
     <section id="screen-quiz" class="screen">
       <div class="top-bar">
         <span id="quiz-counter">1 / 20</span>
@@ -41,6 +43,7 @@
       <button id="btn-quit" class="btn text-btn">ホームに戻る</button>
     </section>
 
+    <!-- 結果画面 -->
     <section id="screen-result" class="screen">
       <h2 class="result-title">Day1 結果</h2>
       <div class="card">
@@ -53,13 +56,17 @@
         <ul id="mistake-list" class="word-list"></ul>
       </div>
       <button id="btn-again" class="btn primary">もう一度</button>
-      <button id="btn-go-review" class="btn secondary">復習モード</button>
+      <button id="btn-go-review" class="btn secondary" disabled>復習モード</button>
       <button id="btn-back-home" class="btn text-btn">ホームへ</button>
     </section>
   </div>
+
+  <!-- ▼▼ 効果音（ここが追加ポイント） ▼▼ -->
+  <audio id="se-correct" src="sounds/correct.wav"></audio>
+  <audio id="se-wrong"   src="sounds/wrong.wav"></audio>
+  <audio id="se-click"   src="sounds/click.wav"></audio>
+  <!-- ▲▲ 効果音ここまで ▲▲ -->
+
   <script src="script.js"></script>
 </body>
 </html>
-<audio id="se-correct" src="sounds/correct.wav"></audio>
-<audio id="se-wrong"   src="sounds/wrong.wav"></audio>
-<audio id="se-click"   src="sounds/click.wav"></audio>
