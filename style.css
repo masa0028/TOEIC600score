@@ -1,0 +1,11 @@
+body { font-family: sans-serif; background: linear-gradient(160deg,#001f3f,#00162b); color:#fff; margin:0;}
+#app{max-width:480px;margin:auto;padding:16px;}
+.screen{display:none;} .screen.active{display:block;}
+.card{background:rgba(0,0,0,.45);padding:16px;border-radius:12px;margin-bottom:16px;}
+.btn{width:100%;padding:12px;border-radius:999px;border:none;margin-top:8px;}
+.btn.primary{background:#00c9ff;color:#003;} .btn.secondary{background:#0008;color:#9df;border:1px solid #9df;}
+.text-btn{background:none;color:#9df;}
+.progress-bar{background:#fff2;height:8px;border-radius:999px;} .progress-inner{background:#0ff;height:8px;width:0%;}
+.question-word{text-align:center;font-size:24px;font-weight:700;}
+.choice-btn{background:#0006;color:#fff;border:1px solid #fff3;padding:10px;border-radius:12px;text-align:left;}
+.correct{background:#0f08;border-color:#0f0;} .wrong{background:#f008;border-color:#f00;}
