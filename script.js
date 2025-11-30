@@ -40,3 +40,9 @@ function finish(){const rate=Math.round(correct/20*100);$("result-score").textCo
 $("result-rate").textContent=`正答率 ${rate}%`;$("result-rank").textContent="ランク "+(rate>=90?"S":rate>=75?"A":rate>=60?"B":"C");
 const list=$("mistake-list");list.innerHTML="";mistakes.forEach(w=>{const li=document.createElement("li");li.textContent=`${w.word} - ${w.meaning_jp}`;list.appendChild(li);});
 show("result");}
+function playClick() {
+  document.getElementById("se-click").play();
+}
+b.onclick = () => { playClick(); answer(b, c, q.meaning_jp, q); };
+document.getElementById("se-correct").play();
+document.getElementById("se-wrong").play();
