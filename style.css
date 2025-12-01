@@ -1,11 +1,158 @@
-body { font-family: sans-serif; background: linear-gradient(160deg,#001f3f,#00162b); color:#fff; margin:0;}
-#app{max-width:480px;margin:auto;padding:16px;}
-.screen{display:none;} .screen.active{display:block;}
-.card{background:rgba(0,0,0,.45);padding:16px;border-radius:12px;margin-bottom:16px;}
-.btn{width:100%;padding:12px;border-radius:999px;border:none;margin-top:8px;}
-.btn.primary{background:#00c9ff;color:#003;} .btn.secondary{background:#0008;color:#9df;border:1px solid #9df;}
-.text-btn{background:none;color:#9df;}
-.progress-bar{background:#fff2;height:8px;border-radius:999px;} .progress-inner{background:#0ff;height:8px;width:0%;}
-.question-word{text-align:center;font-size:24px;font-weight:700;}
-.choice-btn{background:#0006;color:#fff;border:1px solid #fff3;padding:10px;border-radius:12px;text-align:left;}
-.correct{background:#0f08;border-color:#0f0;} .wrong{background:#f008;border-color:#f00;}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Yu Gothic", sans-serif;
+  background: linear-gradient(160deg, #001f3f, #00162b);
+  color: #fff;
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* 画面切り替え */
+.screen {
+  display: none;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.screen.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ホーム */
+.app-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.app-sub {
+  font-size: 14px;
+  text-align: center;
+  color: #a0c4ff;
+  margin-bottom: 16px;
+}
+
+.card {
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.card p + p {
+  margin-top: 4px;
+}
+
+/* プログレスバー */
+.progress-wrap {
+  margin-top: 12px;
+}
+
+.progress-label {
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #d0e4ff;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-inner {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #00c9ff, #92fe9d);
+  border-radius: 999px;
+  transition: width 0.25s ease-out;
+}
+
+.progress-text {
+  font-size: 12px;
+  margin-top: 4px;
+  text-align: right;
+  color: #d0e4ff;
+}
+
+/* ボタン */
+.btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: none;
+  font-size: 15px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #00c9ff, #92fe9d);
+  color: #002b3f;
+  font-weight: 600;
+}
+
+.btn.secondary {
+  background: rgba(0, 0, 0, 0.6);
+  color: #b3e6ff;
+  border: 1px solid rgba(179, 230, 255, 0.6);
+}
+
+.btn.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn.text-btn {
+  background: none;
+  color: #b3e6ff;
+  font-size: 13px;
+}
+
+/* 上バー */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: #d0e4ff;
+}
+
+/* クイズ共通 */
+.direction {
+  font-size: 13px;
+  color: #d0e4ff;
+  margin-bottom: 8px;
+}
+
+.question-word {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap:
