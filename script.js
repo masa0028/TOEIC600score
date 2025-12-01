@@ -22,13 +22,133 @@ const day1Words = [
   { word: "according to",     meaning_jp: "〜によると" }
 ];
 
+// ===== 文法クイズ用データ（例文穴埋め） =====
+const grammarQuestions = [
+  {
+    question: "She (_____) the report yesterday.",
+    options: ["submits", "submitted", "submitting", "submit"],
+    correct: "submitted",
+    explanation: "yesterday があるので過去形 submitted が正解。"
+  },
+  {
+    question: "The meeting has been (_____) to next Monday.",
+    options: ["postponed", "postpone", "postponing", "postpones"],
+    correct: "postponed",
+    explanation: "has been + 過去分詞 なので postponed。"
+  },
+  {
+    question: "Please (_____) me if you have any questions.",
+    options: ["contact", "contacts", "contacting", "to contact"],
+    correct: "contact",
+    explanation: "命令文なので動詞の原形 contact が入る。"
+  },
+  {
+    question: "We are looking forward to (_____) you.",
+    options: ["see", "seeing", "seen", "to see"],
+    correct: "seeing",
+    explanation: "look forward to の後ろは動名詞 seeing。"
+  },
+  {
+    question: "The new system is expected (_____) costs.",
+    options: ["reduce", "to reduce", "reducing", "reduced"],
+    correct: "to reduce",
+    explanation: "is expected to + 動詞の原形 → to reduce。"
+  },
+  {
+    question: "He is responsible (_____) managing the team.",
+    options: ["for", "to", "at", "on"],
+    correct: "for",
+    explanation: "responsible for ～ で「～に責任がある」。"
+  },
+  {
+    question: "The documents must be (_____) by Friday.",
+    options: ["submit", "submitting", "submitted", "to submit"],
+    correct: "submitted",
+    explanation: "must be + 過去分詞 → 受動態 submitted。"
+  },
+  {
+    question: "Our office is closed (_____) weekends.",
+    options: ["in", "on", "at", "for"],
+    correct: "on",
+    explanation: "曜日・週末には on を使う。"
+  },
+  {
+    question: "She has worked here (_____) three years.",
+    options: ["for", "since", "during", "from"],
+    correct: "for",
+    explanation: "for + 期間（three years）で「〜の間」。"
+  },
+  {
+    question: "The manager asked him (_____) the report.",
+    options: ["rewrite", "rewriting", "to rewrite", "rewritten"],
+    correct: "to rewrite",
+    explanation: "ask 人 to 動詞 で「〜するよう頼む」。"
+  }
+];
+
+// ===== シャドーイング用データ =====
+const shadowSentences = [
+  {
+    en: "She attended the meeting on time.",
+    jp: "彼女は会議に時間通りに出席した。",
+    audio: "audio/shadow_1.mp3"
+  },
+  {
+    en: "We need to prepare the documents in advance.",
+    jp: "事前に資料を準備する必要があります。",
+    audio: "audio/shadow_2.mp3"
+  },
+  {
+    en: "He is in charge of the sales department.",
+    jp: "彼は営業部を担当しています。",
+    audio: "audio/shadow_3.mp3"
+  },
+  {
+    en: "The manager approved the new schedule.",
+    jp: "上司は新しいスケジュールを承認しました。",
+    audio: "audio/shadow_4.mp3"
+  },
+  {
+    en: "The company will offer training next week.",
+    jp: "会社は来週研修を提供する予定です。",
+    audio: "audio/shadow_5.mp3"
+  },
+  {
+    en: "Please confirm your attendance by Friday.",
+    jp: "金曜日までに出席を確認してください。",
+    audio: "audio/shadow_6.mp3"
+  },
+  {
+    en: "She completed the report ahead of time.",
+    jp: "彼女は予定より早く報告書を完成させました。",
+    audio: "audio/shadow_7.mp3"
+  },
+  {
+    en: "He requested additional information from us.",
+    jp: "彼はこちらに追加情報を求めました。",
+    audio: "audio/shadow_8.mp3"
+  },
+  {
+    en: "The meeting was postponed due to bad weather.",
+    jp: "悪天候のため会議は延期されました。",
+    audio: "audio/shadow_9.mp3"
+  },
+  {
+    en: "We are responsible for improving customer service.",
+    jp: "私たちは顧客サービスの改善を担当しています。",
+    audio: "audio/shadow_10.mp3"
+  }
+];
+
 // ===== ヘルパー =====
 function $(id){ return document.getElementById(id); }
 
 const screens = {
   home:   $("screen-home"),
   quiz:   $("screen-quiz"),
-  result: $("screen-result")
+  result: $("screen-result"),
+  grammar:$("screen-grammar"),
+  shadow: $("screen-shadow")
 };
 
 let quizWords = [];
@@ -36,11 +156,24 @@ let idx = 0;
 let correct = 0;
 let mistakes = [];
 
-// ▼ 効果音要素
+// 文法クイズ用
+let grammarIndex = 0;
+let grammarCorrect = 0;
+
+// シャドーイング用
+let shadowIndex = 0;
+
+// 効果音要素
 const seCorrect = $("se-correct");
 const seNext    = $("se-next");
 const seWrong   = $("se-wrong");
 const seClick   = $("se-click");
+
+// シャドーイング音声
+const shadowAudio = $("shadow-audio");
+const shadowEn    = $("shadow-en");
+const shadowJp    = $("shadow-jp");
+const shadowCounter = $("shadow-counter");
 
 function playSE(audioEl){
   if (!audioEl) return;
@@ -52,13 +185,11 @@ function playSE(audioEl){
   }
 }
 
-// ===== 画面切り替え =====
 function show(name){
   Object.values(screens).forEach(s => s.classList.remove("active"));
   screens[name].classList.add("active");
 }
 
-// ===== シャッフル =====
 function shuffle(a){
   const arr = a.slice();
   for(let i = arr.length - 1; i > 0; i--){
@@ -68,7 +199,8 @@ function shuffle(a){
   return arr;
 }
 
-// ===== クイズ開始 =====
+/* ==================== 単語クイズ ==================== */
+
 function startQuiz(){
   playSE(seClick);
   quizWords = shuffle(day1Words);
@@ -77,13 +209,12 @@ function startQuiz(){
   mistakes = [];
   updateProgress(0);
   show("quiz");
-  render();
+  renderQuestion();
 }
 
-// ===== 1問表示 =====
-function render(){
+function renderQuestion(){
   if(idx >= quizWords.length){
-    finish();
+    showResult();
     return;
   }
   const q = quizWords[idx];
@@ -108,42 +239,39 @@ function render(){
     btn.className = "choice-btn";
     btn.textContent = c;
     btn.onclick = () => {
-      playSE(seClick);  // タップ音
-      answer(btn, c, q.meaning_jp, q);
+      playSE(seClick);
+      handleAnswer(btn, c, q.meaning_jp, q);
     };
     box.appendChild(btn);
   });
 }
 
-// ===== 回答処理 =====
-function answer(btn, choice, correctAns, q){
+function handleAnswer(btn, choice, correctAns, q){
   Array.from($("choices").children).forEach(b => b.disabled = true);
 
   if (choice === correctAns){
     correct++;
     btn.classList.add("correct");
     $("feedback").textContent = "正解！";
-    playSE(seCorrect);  // ★ ピンポン音
+    playSE(seCorrect);
   } else {
     btn.classList.add("wrong");
     $("feedback").textContent = `不正解… 正解: ${correctAns}`;
     mistakes.push(q);
-    playSE(seWrong);    // ★ ブザー音
+    playSE(seWrong);
   }
 
   updateProgress(idx + 1);
   $("btn-next").style.display = "block";
 }
 
-// ===== 進捗バー =====
 function updateProgress(done){
   const total = day1Words.length;
   $("progress-inner").style.width = (done / total * 100) + "%";
   $("progress-text").textContent  = `${done} / ${total}`;
 }
 
-// ===== 結果表示 =====
-function finish(){
+function showResult(){
   const total = day1Words.length;
   const rate  = Math.round(correct / total * 100);
 
@@ -166,13 +294,157 @@ function finish(){
   show("result");
 }
 
-// ===== イベント登録 =====
+/* ==================== 文法クイズ ==================== */
+
+const grammarQuestionEl  = $("grammar-question");
+const grammarChoicesEl   = $("grammar-choices");
+const grammarFeedbackEl  = $("grammar-feedback");
+const grammarCounterEl   = $("grammar-counter");
+const grammarProgressEl  = $("grammar-progress");
+
+function startGrammarQuiz() {
+  playSE(seClick);
+  grammarIndex = 0;
+  grammarCorrect = 0;
+  show("grammar");
+  renderGrammarQuestion();
+}
+
+function renderGrammarQuestion() {
+  const total = grammarQuestions.length;
+  if (grammarIndex >= total) {
+    showGrammarResult();
+    return;
+  }
+
+  const q = grammarQuestions[grammarIndex];
+  grammarQuestionEl.textContent = q.question;
+  grammarCounterEl.textContent  = `${grammarIndex + 1} / ${total}`;
+  grammarFeedbackEl.textContent = "";
+  $("btn-grammar-next").style.display = "none";
+
+  grammarProgressEl.textContent = `正解数 ${grammarCorrect} / ${grammarIndex}`;
+
+  const shuffled = shuffle(q.options);
+  grammarChoicesEl.innerHTML = "";
+
+  shuffled.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.textContent = opt;
+    btn.onclick = () => {
+      playSE(seClick);
+      handleGrammarAnswer(btn, opt, q);
+    };
+    grammarChoicesEl.appendChild(btn);
+  });
+}
+
+function handleGrammarAnswer(btn, choice, q) {
+  Array.from(grammarChoicesEl.children).forEach(b => b.disabled = true);
+
+  if (choice === q.correct) {
+    btn.classList.add("correct");
+    grammarFeedbackEl.textContent = "✅ 正解！ " + q.explanation;
+    grammarCorrect++;
+    playSE(seCorrect);
+  } else {
+    btn.classList.add("wrong");
+    grammarFeedbackEl.textContent = `❌ 不正解… 正解: ${q.correct} ／ ${q.explanation}`;
+    playSE(seWrong);
+  }
+
+  grammarProgressEl.textContent = `正解数 ${grammarCorrect} / ${grammarIndex + 1}`;
+  $("btn-grammar-next").style.display = "block";
+}
+
+function showGrammarResult() {
+  const total = grammarQuestions.length;
+  const rate  = Math.round(grammarCorrect / total * 100);
+  let msg = `文法クイズ 結果：${grammarCorrect} / ${total}（${rate}%）`;
+
+  if (rate >= 90) msg += " すばらしい！Part5もかなり強いです。";
+  else if (rate >= 70) msg += " 良い感じです。もう一周して精度アップを。";
+  else msg += " 苦手パターンを中心に復習しましょう。";
+
+  grammarFeedbackEl.textContent = msg;
+  grammarChoicesEl.innerHTML = "";
+  $("btn-grammar-next").style.display = "none";
+}
+
+/* ==================== シャドーイング ==================== */
+
+function startShadowing(){
+  playSE(seClick);
+  shadowIndex = 0;
+  show("shadow");
+  renderShadowSentence();
+}
+
+function renderShadowSentence(){
+  const total = shadowSentences.length;
+  if (shadowIndex >= total) {
+    shadowIndex = 0;
+  }
+  const data = shadowSentences[shadowIndex];
+
+  shadowEn.textContent = data.en;
+  shadowJp.textContent = data.jp;
+  shadowCounter.textContent = `${shadowIndex + 1} / ${total}`;
+
+  shadowAudio.src = data.audio;
+  shadowAudio.playbackRate = 1.0;
+}
+
+function playShadowNormal(){
+  if (!shadowAudio.src) return;
+  try {
+    shadowAudio.pause();
+    shadowAudio.currentTime = 0;
+    shadowAudio.playbackRate = 1.0;
+    shadowAudio.play();
+  } catch (e) {
+    console.log("shadow normal play error", e);
+  }
+}
+
+function playShadowSlow(){
+  if (!shadowAudio.src) return;
+  try {
+    shadowAudio.pause();
+    shadowAudio.currentTime = 0;
+    shadowAudio.playbackRate = 0.75;
+    shadowAudio.play();
+  } catch (e) {
+    console.log("shadow slow play error", e);
+  }
+}
+
+function repeatShadow(){
+  if (!shadowAudio.src) return;
+  try {
+    shadowAudio.currentTime = 0;
+    shadowAudio.play();
+  } catch (e) {
+    console.log("shadow repeat play error", e);
+  }
+}
+
+function nextShadowSentence(){
+  playSE(seNext);
+  shadowIndex++;
+  renderShadowSentence();
+}
+
+/* ==================== イベント登録 ==================== */
+
+// 単語クイズ
 $("btn-start").onclick = startQuiz;
 
 $("btn-next").onclick = () => {
-  playSE(seNext);   // ★ 「次へ」で明るくステージ進行音
+  playSE(seNext);
   idx++;
-  render();
+  renderQuestion();
 };
 
 $("btn-quit").onclick = () => {
@@ -185,6 +457,48 @@ $("btn-again").onclick = () => {
 };
 
 $("btn-back-home").onclick = () => {
+  playSE(seClick);
+  show("home");
+};
+
+$("btn-go-review").onclick = () => {
+  alert("復習モードは今後実装予定です。");
+};
+
+// 文法クイズ
+$("btn-grammar").onclick = () => {
+  startGrammarQuiz();
+};
+
+$("btn-grammar-next").onclick = () => {
+  playSE(seNext);
+  grammarIndex++;
+  renderGrammarQuestion();
+};
+
+$("btn-grammar-back").onclick = () => {
+  playSE(seClick);
+  show("home");
+};
+
+// シャドーイング
+$("btn-shadow").onclick            = startShadowing;
+$("btn-shadow-play-normal").onclick = () => {
+  playSE(seClick);
+  playShadowNormal();
+};
+$("btn-shadow-play-slow").onclick   = () => {
+  playSE(seClick);
+  playShadowSlow();
+};
+$("btn-shadow-repeat").onclick      = () => {
+  playSE(seClick);
+  repeatShadow();
+};
+$("btn-shadow-next").onclick        = () => {
+  nextShadowSentence();
+};
+$("btn-shadow-back").onclick        = () => {
   playSE(seClick);
   show("home");
 };
