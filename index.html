@@ -29,12 +29,14 @@
       </div>
 
       <button id="btn-start" class="btn primary">Day1クエストを始める</button>
-      <button id="btn-review" class="btn secondary" disabled>復習モード</button>
+      <button id="btn-review" class="btn secondary" disabled>復習モード（準備中）</button>
+      <button id="btn-shadow" class="btn secondary">シャドーイング</button>
+      <button id="btn-grammar" class="btn secondary">文法クイズ（穴埋め）</button>
     </section>
 
 
 
-    <!-- ====================== クイズ画面 ====================== -->
+    <!-- ====================== 単語クイズ画面 ====================== -->
     <section id="screen-quiz" class="screen">
       <div class="top-bar">
         <span id="quiz-counter">1 / 20</span>
@@ -70,21 +72,77 @@
         <ul id="mistake-list" class="word-list"></ul>
       </div>
 
-      <button id="btn-again" class="btn primary">もう一度</button>
-      <button id="btn-go-review" class="btn secondary" disabled>復習モード</button>
+      <button id="btn-again" class="btn primary">もう一度 Day1 を解く</button>
+      <button id="btn-go-review" class="btn secondary" disabled>復習モード（準備中）</button>
       <button id="btn-back-home" class="btn text-btn">ホームへ</button>
+    </section>
+
+
+
+    <!-- ====================== 文法クイズ画面 ====================== -->
+    <section id="screen-grammar" class="screen">
+      <div class="top-bar">
+        <span>文法クイズ（例文穴埋め）</span>
+        <span id="grammar-counter">1 / 10</span>
+      </div>
+
+      <div class="card">
+        <p class="direction">文中の (_____) に入る最も適切な語を選んでください。</p>
+        <p id="grammar-question" class="question-sentence">
+          She (_____) the report yesterday.
+        </p>
+
+        <div id="grammar-choices" class="choices"></div>
+        <p id="grammar-feedback" class="feedback"></p>
+        <p id="grammar-progress" class="grammar-progress">正解数 0 / 0</p>
+      </div>
+
+      <button id="btn-grammar-next" class="btn primary" style="display:none;">次の問題へ</button>
+      <button id="btn-grammar-back" class="btn text-btn">ホームに戻る</button>
+    </section>
+
+
+
+    <!-- ====================== シャドーイング画面 ====================== -->
+    <section id="screen-shadow" class="screen">
+      <div class="top-bar">
+        <span>シャドーイング</span>
+        <span id="shadow-counter">1 / 10</span>
+      </div>
+
+      <div class="card">
+        <p class="shadow-label">英文</p>
+        <p id="shadow-en" class="shadow-sentence">
+          She attended the meeting on time.
+        </p>
+
+        <p class="shadow-label">日本語</p>
+        <p id="shadow-jp" class="shadow-translation">
+          彼女は会議に時間通りに出席した。
+        </p>
+      </div>
+
+      <div class="card shadow-controls">
+        <button id="btn-shadow-play-normal" class="btn primary">通常スピードで再生</button>
+        <button id="btn-shadow-play-slow"   class="btn secondary">ゆっくり再生</button>
+        <button id="btn-shadow-repeat"      class="btn secondary">もう一度</button>
+        <button id="btn-shadow-next"        class="btn primary">次の文へ</button>
+        <button id="btn-shadow-back"        class="btn text-btn">ホームに戻る</button>
+      </div>
     </section>
 
   </div>
 
 
 
-  <!-- ====================== 効果音（ここ超重要） ====================== -->
-  <audio id="se-correct" src="sounds/correct_nintendo.wav"></audio>
+  <!-- ====================== 効果音 ====================== -->
+  <audio id="se-correct" src="sounds/correct.wav"></audio>
   <audio id="se-next"    src="sounds/next.wav"></audio>
   <audio id="se-wrong"   src="sounds/wrong.wav"></audio>
   <audio id="se-click"   src="sounds/click.wav"></audio>
-  <!-- =============================================================== -->
+
+  <!-- ====================== シャドーイング用音声（1つを動的に切り替え） ====================== -->
+  <audio id="shadow-audio"></audio>
 
   <script src="script.js"></script>
 </body>
