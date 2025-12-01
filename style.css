@@ -155,4 +155,187 @@ body {
 .choices {
   display: grid;
   grid-template-columns: 1fr;
-  gap:
+  gap: 8px;
+}
+
+.choice-btn {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choice-btn.correct {
+  border-color: #92fe9d;
+  background: rgba(146, 254, 157, 0.18);
+}
+
+.choice-btn.wrong {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.18);
+}
+
+.choice-btn:disabled {
+  opacity: 0.75;
+  cursor: default;
+}
+
+.feedback {
+  margin-top: 10px;
+  font-size: 13px;
+  min-height: 1.5em;
+}
+
+/* 結果画面 */
+.result-title {
+  font-size: 20px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.result-score {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.result-rate,
+.result-rank {
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.result-subtitle {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.word-list {
+  list-style: none;
+  font-size: 13px;
+}
+
+.word-list li + li {
+  margin-top: 4px;
+}
+
+/* 文法クイズ用 */
+.question-sentence {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 12px 0;
+}
+
+.grammar-progress {
+  font-size: 12px;
+  color: #d0e4ff;
+  margin-top: 8px;
+  text-align: right;
+}
+
+/* シャドーイング用 */
+.shadow-label {
+  font-size: 12px;
+  color: #d0e4ff;
+  margin-bottom: 4px;
+}
+
+.shadow-sentence {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.shadow-translation {
+  font-size: 14px;
+  color: #d0e4ff;
+}
+
+.shadow-controls .btn {
+  margin-top: 6px;
+}
+
+/* AIチャット用 */
+.chat-card {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-bubble {
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.chat-bubble.user {
+  align-self: flex-end;
+  background: #00c9ff;
+  color: #002b3f;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-bubble.bot {
+  align-self: flex-start;
+  background: rgba(0,0,0,0.7);
+  border-bottom-left-radius: 4px;
+}
+
+.chat-subtitle {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 13px;
+}
+
+.chat-input::placeholder {
+  color: #aac4ff;
+}
+
+.chat-send-btn {
+  width: auto;
+  padding-inline: 16px;
+}
+
+.chat-quick {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.chat-quick .btn {
+  font-size: 12px;
+  padding-block: 8px;
+}
+
+/* レスポンシブ */
+@media (min-width: 600px) {
+  #app {
+    padding-top: 32px;
+  }
+}
