@@ -17,10 +17,10 @@
 
       <div class="card">
         <p>今日のミッション：</p>
-        <p><strong>20単語の4択クイズ</strong>をクリアして600点を目指そう！</p>
+        <p><strong>単語クイズ＋文法＋シャドーイング</strong>で600点を目指そう！</p>
 
         <div class="progress-wrap">
-          <div class="progress-label">進捗</div>
+          <div class="progress-label">進捗（現在のセット）</div>
           <div class="progress-bar">
             <div id="progress-inner" class="progress-inner"></div>
           </div>
@@ -28,10 +28,11 @@
         </div>
       </div>
 
-      <button id="btn-start" class="btn primary">Day1クエストを始める</button>
-      <button id="btn-review" class="btn secondary" disabled>復習モード（準備中）</button>
-      <button id="btn-shadow" class="btn secondary">シャドーイング</button>
+      <button id="btn-start" class="btn primary">Day1クエスト（単語クイズ）</button>
+      <button id="btn-review" class="btn secondary" disabled>復習モード（間違えた単語）</button>
       <button id="btn-grammar" class="btn secondary">文法クイズ（穴埋め）</button>
+      <button id="btn-shadow" class="btn secondary">シャドーイング</button>
+      <button id="btn-chat" class="btn secondary">AI復習チャット</button>
     </section>
 
 
@@ -73,7 +74,7 @@
       </div>
 
       <button id="btn-again" class="btn primary">もう一度 Day1 を解く</button>
-      <button id="btn-go-review" class="btn secondary" disabled>復習モード（準備中）</button>
+      <button id="btn-go-review" class="btn secondary" disabled>復習モードで解き直す</button>
       <button id="btn-back-home" class="btn text-btn">ホームへ</button>
     </section>
 
@@ -129,6 +130,34 @@
         <button id="btn-shadow-next"        class="btn primary">次の文へ</button>
         <button id="btn-shadow-back"        class="btn text-btn">ホームに戻る</button>
       </div>
+    </section>
+
+
+
+    <!-- ====================== AI復習チャット画面 ====================== -->
+    <section id="screen-chat" class="screen">
+      <div class="top-bar">
+        <span>AI復習チャット</span>
+        <span class="chat-subtitle">単語 → 実践表現</span>
+      </div>
+
+      <div class="card chat-card">
+        <div id="chat-log" class="chat-log">
+          <!-- JSでメッセージが追加される -->
+        </div>
+      </div>
+
+      <div class="chat-quick">
+        <button id="btn-chat-example" class="btn secondary">今日の単語で例文を作って</button>
+        <button id="btn-chat-sales" class="btn secondary">営業のシーンで使える表現を教えて</button>
+      </div>
+
+      <div class="chat-input-row">
+        <input id="chat-input" class="chat-input" type="text" placeholder="例）increase を使ってビジネスの例文を作って" />
+        <button id="btn-chat-send" class="btn primary chat-send-btn">送信</button>
+      </div>
+
+      <button id="btn-chat-back" class="btn text-btn">ホームに戻る</button>
     </section>
 
   </div>
