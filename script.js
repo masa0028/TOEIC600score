@@ -22,7 +22,7 @@ const day1Words = [
   { word: "according to",     meaning_jp: "〜によると" }
 ];
 
-// ===== 文法クイズ用データ（例文穴埋め） =====
+// ===== 文法クイズ用データ =====
 const grammarQuestions = [
   {
     question: "She (_____) the report yesterday.",
@@ -148,7 +148,8 @@ const screens = {
   quiz:   $("screen-quiz"),
   result: $("screen-result"),
   grammar:$("screen-grammar"),
-  shadow: $("screen-shadow")
+  shadow: $("screen-shadow"),
+  chat:   $("screen-chat")
 };
 
 let quizWords = [];
@@ -156,24 +157,46 @@ let idx = 0;
 let correct = 0;
 let mistakes = [];
 
-// 文法クイズ用
+// 復習モード
+let isReviewMode = false;
+let reviewWords = [];
+
+// 文法クイズ
 let grammarIndex = 0;
 let grammarCorrect = 0;
 
-// シャドーイング用
+// シャドーイング
 let shadowIndex = 0;
 
-// 効果音要素
+// 効果音
 const seCorrect = $("se-correct");
 const seNext    = $("se-next");
 const seWrong   = $("se-wrong");
 const seClick   = $("se-click");
 
 // シャドーイング音声
-const shadowAudio = $("shadow-audio");
-const shadowEn    = $("shadow-en");
-const shadowJp    = $("shadow-jp");
+const shadowAudio   = $("shadow-audio");
+const shadowEn      = $("shadow-en");
+const shadowJp      = $("shadow-jp");
 const shadowCounter = $("shadow-counter");
+
+// クイズモードラベル
+const quizModeLabel = $("quiz-mode-label");
+
+// 文法クイズ要素
+const grammarQuestionEl  = $("grammar-question");
+const grammarChoicesEl   = $("grammar-choices");
+const grammarFeedbackEl  = $("grammar-feedback");
+const grammarCounterEl   = $("grammar-counter");
+const grammarProgressEl  = $("grammar-progress");
+
+// 復習ボタン
+const btnReview   = $("btn-review");
+const btnGoReview = $("btn-go-review");
+
+// チャット要素
+const chatLog   = $("chat-log");
+const chatInput = $("chat-input");
 
 function playSE(audioEl){
   if (!audioEl) return;
@@ -187,7 +210,7 @@ function playSE(audioEl){
 
 function show(name){
   Object.values(screens).forEach(s => s.classList.remove("active"));
-  screens[name].classList.add("active");
+  if (screens[name]) screens[name].classList.add("active");
 }
 
 function shuffle(a){
@@ -199,14 +222,33 @@ function shuffle(a){
   return arr;
 }
 
-/* ==================== 単語クイズ ==================== */
+/* ========== 単語クイズ ========== */
 
 function startQuiz(){
   playSE(seClick);
+  isReviewMode = false;
   quizWords = shuffle(day1Words);
   idx = 0;
   correct = 0;
   mistakes = [];
+  if (quizModeLabel) quizModeLabel.textContent = "本番モード";
+  updateProgress(0);
+  show("quiz");
+  renderQuestion();
+}
+
+function startReviewQuiz(){
+  if (reviewWords.length === 0){
+    alert("復習対象の単語がありません。\nまずはDay1クエストを解いて、間違えた単語をためましょう。");
+    return;
+  }
+  playSE(seClick);
+  isReviewMode = true;
+  quizWords = shuffle(reviewWords);
+  idx = 0;
+  correct = 0;
+  mistakes = [];
+  if (quizModeLabel) quizModeLabel.textContent = "復習モード";
   updateProgress(0);
   show("quiz");
   renderQuestion();
@@ -220,7 +262,7 @@ function renderQuestion(){
   const q = quizWords[idx];
 
   $("quiz-question").textContent = q.word;
-  $("quiz-counter").textContent  = `${idx + 1} / ${day1Words.length}`;
+  $("quiz-counter").textContent  = `${idx + 1} / ${quizWords.length}`;
   $("feedback").textContent      = "";
   $("btn-next").style.display    = "none";
 
@@ -266,14 +308,14 @@ function handleAnswer(btn, choice, correctAns, q){
 }
 
 function updateProgress(done){
-  const total = day1Words.length;
+  const total = quizWords.length || day1Words.length;
   $("progress-inner").style.width = (done / total * 100) + "%";
   $("progress-text").textContent  = `${done} / ${total}`;
 }
 
 function showResult(){
-  const total = day1Words.length;
-  const rate  = Math.round(correct / total * 100);
+  const total = quizWords.length || day1Words.length;
+  const rate  = total > 0 ? Math.round(correct / total * 100) : 0;
 
   $("result-score").textContent = `正解数 ${correct} / ${total}`;
   $("result-rate").textContent  = `正答率 ${rate}%`;
@@ -291,16 +333,15 @@ function showResult(){
     list.appendChild(li);
   });
 
+  reviewWords = mistakes.slice();
+  const hasReview = reviewWords.length > 0;
+  if (btnReview)   btnReview.disabled   = !hasReview;
+  if (btnGoReview) btnGoReview.disabled = !hasReview;
+
   show("result");
 }
 
-/* ==================== 文法クイズ ==================== */
-
-const grammarQuestionEl  = $("grammar-question");
-const grammarChoicesEl   = $("grammar-choices");
-const grammarFeedbackEl  = $("grammar-feedback");
-const grammarCounterEl   = $("grammar-counter");
-const grammarProgressEl  = $("grammar-progress");
+/* ========== 文法クイズ ========== */
 
 function startGrammarQuiz() {
   playSE(seClick);
@@ -372,7 +413,7 @@ function showGrammarResult() {
   $("btn-grammar-next").style.display = "none";
 }
 
-/* ==================== シャドーイング ==================== */
+/* ========== シャドーイング ========== */
 
 function startShadowing(){
   playSE(seClick);
@@ -436,69 +477,194 @@ function nextShadowSentence(){
   renderShadowSentence();
 }
 
-/* ==================== イベント登録 ==================== */
+/* ========== AI英語チャット ========== */
 
-// 単語クイズ
-$("btn-start").onclick = startQuiz;
-
-$("btn-next").onclick = () => {
-  playSE(seNext);
-  idx++;
-  renderQuestion();
-};
-
-$("btn-quit").onclick = () => {
+function startChat(){
   playSE(seClick);
-  show("home");
-};
+  show("chat");
+  if (chatLog) chatLog.innerHTML = "";
+  addBotMessage(
+    "こんにちは！AI英語チャットです。\n" +
+    "このチャットでは、いつでも英語の質問ができます。\n\n" +
+    "例：\n" +
+    "・「increase ってどういう意味？」\n" +
+    "・「今日の単語で例文を作って」\n" +
+    "・「営業のシーンで使える表現を教えて」\n" +
+    "・「メールでよく使うフレーズを知りたい」\n\n" +
+    "聞きたいことを日本語で自由に入力してみてください。"
+  );
+}
 
-$("btn-again").onclick = () => {
-  startQuiz();
-};
+function addMessage(text, isUser){
+  const div = document.createElement("div");
+  div.className = "chat-bubble " + (isUser ? "user" : "bot");
+  div.textContent = text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
 
-$("btn-back-home").onclick = () => {
-  playSE(seClick);
-  show("home");
-};
+function addUserMessage(text){
+  addMessage(text, true);
+}
 
-$("btn-go-review").onclick = () => {
-  alert("復習モードは今後実装予定です。");
-};
+function addBotMessage(text){
+  addMessage(text, false);
+}
 
-// 文法クイズ
-$("btn-grammar").onclick = () => {
-  startGrammarQuiz();
-};
+function generateTutorReply(message){
+  const msg = message.toLowerCase();
+  const allWords = day1Words;
+  const foundWords = [];
 
-$("btn-grammar-next").onclick = () => {
-  playSE(seNext);
-  grammarIndex++;
-  renderGrammarQuestion();
-};
+  allWords.forEach(w => {
+    const base = w.word.toLowerCase();
+    if (msg.includes(base)) {
+      foundWords.push(w);
+    }
+  });
 
-$("btn-grammar-back").onclick = () => {
-  playSE(seClick);
-  show("home");
-};
+  const wantsExample =
+    msg.includes("例文") || msg.includes("example") || msg.includes("使って");
+  const wantsSales =
+    msg.includes("営業") || msg.includes("sales") || msg.includes("customer");
+  const wantsMail =
+    msg.includes("メール") || msg.includes("email") || msg.includes("mail");
 
-// シャドーイング
-$("btn-shadow").onclick            = startShadowing;
-$("btn-shadow-play-normal").onclick = () => {
-  playSE(seClick);
-  playShadowNormal();
-};
-$("btn-shadow-play-slow").onclick   = () => {
-  playSE(seClick);
-  playShadowSlow();
-};
-$("btn-shadow-repeat").onclick      = () => {
-  playSE(seClick);
-  repeatShadow();
-};
-$("btn-shadow-next").onclick        = () => {
-  nextShadowSentence();
-};
-$("btn-shadow-back").onclick        = () => {
-  playSE(seClick);
-  show("home");
-};
+  if (foundWords.length > 0 && wantsExample){
+    const w = foundWords[0];
+    return (
+      `単語「${w.word}」：${w.meaning_jp}\n\n` +
+      `【例文1】\n` +
+      `We need to ${w.word} our performance this year.\n` +
+      `今年は業績を${w.meaning_jp}必要があります。\n\n` +
+      `【例文2】\n` +
+      `Our manager decided to ${w.word} the training program.\n` +
+      `上司は研修プログラムを${w.meaning_jp}ことに決めました。`
+    );
+  }
+
+  if (wantsSales){
+    return (
+      "【営業のシーンで使える表現】\n\n" +
+      "1) We’d like to increase sales in this quarter.\n" +
+      "　今期の売上を伸ばしたいと考えています。\n\n" +
+      "2) According to the latest report, customer satisfaction is improving.\n" +
+      "　最新の報告によると、顧客満足度は向上しています。\n\n" +
+      "3) We are responsible for providing better service to our clients.\n" +
+      "　私たちはお客様により良いサービスを提供する責任があります。"
+    );
+  }
+
+  if (wantsMail){
+    return (
+      "【ビジネスメールで使えるフレーズ】\n\n" +
+      "・Thank you for your inquiry.\n" +
+      "　お問合せありがとうございます。\n\n" +
+      "・Could you please confirm the schedule in advance?\n" +
+      "　事前にスケジュールをご確認いただけますでしょうか。\n\n" +
+      "・We look forward to hearing from you。\n" +
+      "　ご連絡をお待ちしております。"
+    );
+  }
+
+  if (wantsExample){
+    const pick = shuffle(allWords).slice(0, 3);
+    let text = "【今日の単語を使った例文】\n\n";
+    pick.forEach((w, i) => {
+      text += `${i+1}) ${w.word} ：${w.meaning_jp}\n`;
+      text += `   We need to ${w.word} our schedule.\n`;
+      text += `   私たちはスケジュールを${w.meaning_jp}必要があります。\n\n`;
+    });
+    return text;
+  }
+
+  if (foundWords.length > 0){
+    const w = foundWords[0];
+    return (
+      `単語「${w.word}」：${w.meaning_jp}\n\n` +
+      `【例文】\n` +
+      `We must ${w.word} the meeting due to bad weather.\n` +
+      `悪天候のため会議を${w.meaning_jp}必要があります。`
+    );
+  }
+
+  const quizTarget = shuffle(day1Words).slice(2, 5);
+  let quiz = "うまく拾えなかったので、代わりにミニクイズを出します！\n\n";
+  quizTarget.forEach((w, i) => {
+    quiz += `${i+1}) 「${w.meaning_jp}」は英語で？ → ${w.word}\n`;
+  });
+  quiz += "\n気になる単語があれば、その単語名を送ってくれれば、例文を作ります。";
+  return quiz;
+}
+
+function handleChatSend(customText){
+  const text = (typeof customText === "string" ? customText : chatInput.value).trim();
+  if (!text) return;
+
+  addUserMessage(text);
+  chatInput.value = "";
+
+  const reply = generateTutorReply(text);
+  setTimeout(() => {
+    addBotMessage(reply);
+  }, 200);
+}
+
+/* ========== イベント登録 ========== */
+
+window.addEventListener("DOMContentLoaded", () => {
+  const btnStart     = $("btn-start");
+  const btnNext      = $("btn-next");
+  const btnQuit      = $("btn-quit");
+  const btnAgain     = $("btn-again");
+  const btnBackHome  = $("btn-back-home");
+  const btnGrammar   = $("btn-grammar");
+  const btnGrammarNext = $("btn-grammar-next");
+  const btnGrammarBack = $("btn-grammar-back");
+  const btnShadow    = $("btn-shadow");
+  const btnShadowPlayNormal = $("btn-shadow-play-normal");
+  const btnShadowPlaySlow   = $("btn-shadow-play-slow");
+  const btnShadowRepeat     = $("btn-shadow-repeat");
+  const btnShadowNext       = $("btn-shadow-next");
+  const btnShadowBack       = $("btn-shadow-back");
+  const btnChat     = $("btn-chat");
+  const btnChatSend = $("btn-chat-send");
+  const btnChatBack = $("btn-chat-back");
+  const btnChatExample = $("btn-chat-example");
+  const btnChatSales   = $("btn-chat-sales");
+
+  if (btnStart)    btnStart.onclick    = startQuiz;
+  if (btnNext)     btnNext.onclick     = () => { playSE(seNext); idx++; renderQuestion(); };
+  if (btnQuit)     btnQuit.onclick     = () => { playSE(seClick); show("home"); };
+  if (btnAgain)    btnAgain.onclick    = startQuiz;
+  if (btnBackHome) btnBackHome.onclick = () => { playSE(seClick); show("home"); };
+
+  if (btnReview)   btnReview.onclick   = startReviewQuiz;
+  if (btnGoReview) btnGoReview.onclick = startReviewQuiz;
+
+  if (btnGrammar)      btnGrammar.onclick      = startGrammarQuiz;
+  if (btnGrammarNext)  btnGrammarNext.onclick  = () => { playSE(seNext); grammarIndex++; renderGrammarQuestion(); };
+  if (btnGrammarBack)  btnGrammarBack.onclick  = () => { playSE(seClick); show("home"); };
+
+  if (btnShadow)            btnShadow.onclick            = startShadowing;
+  if (btnShadowPlayNormal)  btnShadowPlayNormal.onclick  = () => { playSE(seClick); playShadowNormal(); };
+  if (btnShadowPlaySlow)    btnShadowPlaySlow.onclick    = () => { playSE(seClick); playShadowSlow(); };
+  if (btnShadowRepeat)      btnShadowRepeat.onclick      = () => { playSE(seClick); repeatShadow(); };
+  if (btnShadowNext)        btnShadowNext.onclick        = () => { nextShadowSentence(); };
+  if (btnShadowBack)        btnShadowBack.onclick        = () => { playSE(seClick); show("home"); };
+
+  if (btnChat)       btnChat.onclick       = startChat;
+  if (btnChatSend)   btnChatSend.onclick   = () => handleChatSend();
+  if (btnChatBack)   btnChatBack.onclick   = () => { playSE(seClick); show("home"); };
+  if (btnChatExample)btnChatExample.onclick= () => { playSE(seClick); handleChatSend("今日の単語で例文を作って"); };
+  if (btnChatSales)  btnChatSales.onclick  = () => { playSE(seClick); handleChatSend("営業のシーンで使える表現を教えて"); };
+
+  if (chatInput) {
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleChatSend();
+      }
+    });
+  }
+});
