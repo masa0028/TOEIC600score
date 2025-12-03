@@ -520,13 +520,22 @@ async function callChatAPI(userMessage){
     body: JSON.stringify({ message: userMessage })
   });
 
-  if (!res.ok){
-    console.error("API error:", res.status, await res.text());
-    throw new Error("API error");
+  const data = await res.json();
+
+  // Worker から { reply } が返ってきた場合
+  if (data.reply) {
+    return data.reply;
   }
 
-  const data = await res.json();
-  return data.reply;
+  // エラー系（OpenAI / Worker）
+  if (data.error) {
+    // 画面にそのまま内容を出す
+    return "⚠ エラーが発生しました。\n" +
+           "種類: " + data.error + "\n" +
+           "詳細: " + JSON.stringify(data.detail ?? "", null, 2);
+  }
+
+  return "⚠ 予期しないレスポンスです。";
 }
 
 // 送信処理（ボタン & Enter & クイックボタン共通）
@@ -546,7 +555,7 @@ async function handleChatSend(customText){
     thinkingBubble.textContent = reply;
   } catch (e){
     console.error(e);
-    thinkingBubble.textContent = "エラーが発生しました。API設定（WorkerのURLやキー）を確認してください。";
+    thinkingBubble.textContent = "⚠ JavaScript側でエラーが発生しました。\n" + e.toString();
   }
 }
 
