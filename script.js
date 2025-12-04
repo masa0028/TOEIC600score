@@ -165,7 +165,7 @@ let reviewWords = [];
 // 文法クイズ
 let grammarIndex = 0;
 let grammarCorrect = 0;
-// ★ ランダム出題用の配列を追加
+// ★ ランダム出題用の配列
 let shuffledGrammarQuestions = [];
 
 // シャドーイング
@@ -246,7 +246,7 @@ function startQuiz(){
 
 function startReviewQuiz(){
   if (reviewWords.length === 0){
-    alert("復習対象の単語がありません。\nまずは単語クイズを解いて、間違えた単語をためましょう。");
+    alert("復習対象の単語がありません。\nまずはDay1クエストを解いて、間違えた単語をためましょう。");
     return;
   }
   playSE(seClick);
@@ -348,14 +348,13 @@ function showResult(){
   show("result");
 }
 
-// ==================== 文法クイズ（ランダム出題対応） ====================
+// ==================== 文法クイズ（ランダム出題） ====================
 
 function startGrammarQuiz() {
   playSE(seClick);
   grammarIndex = 0;
   grammarCorrect = 0;
-  // ★ここで文法問題をランダムにシャッフル
-  shuffledGrammarQuestions = shuffle(grammarQuestions);
+  shuffledGrammarQuestions = shuffle(grammarQuestions); // ★ここで問題順ランダム
   show("grammar");
   renderGrammarQuestion();
 }
