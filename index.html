@@ -2,119 +2,178 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <title>TOEIC 600 Quest - 単語クイズ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TOEIC600 Quest - 単語クイズ</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-<div class="app">
+  <div id="app">
 
-  <!-- ===================== -->
-  <!-- ヘッダー               -->
-  <!-- ===================== -->
-  <header class="app-header">
-    <h1>TOEIC600 Quest</h1>
-    <p class="subtitle">単語クイズ / 文法クイズ / シャドーイング / AI英語チャット</p>
-  </header>
+    <!-- ====================== ホーム画面 ====================== -->
+    <section id="screen-home" class="screen active">
+      <h1 class="app-title">TOEIC 600 Quest</h1>
+      <p class="app-sub">単語クイズ：必須単語20語トレーニング</p>
 
-  <!-- ===================== -->
-  <!-- ホーム画面            -->
-  <!-- ===================== -->
-  <main id="screen-home" class="screen active">
-    <h2>モードを選択してください</h2>
-    <div class="menu-grid">
-      <button id="btn-word-quiz" class="menu-card">
-        <h3>単語クイズ</h3>
-        <p>TOEIC頻出単語をランダムで出題します</p>
-      </button>
-      <button id="btn-grammar-quiz" class="menu-card">
-        <h3>文法クイズ</h3>
-        <p>穴埋め形式で文法力をチェックします</p>
-      </button>
-      <button id="btn-shadowing" class="menu-card">
-        <h3>シャドーイング</h3>
-        <p>例文を見ながら声に出して練習</p>
-      </button>
-      <button id="btn-chat" class="menu-card">
-        <h3>AI英語チャット</h3>
-        <p>英語の質問にいつでも相談できます</p>
-      </button>
-    </div>
-  </main>
+      <div class="card">
+        <p>今日のミッション：</p>
+        <p><strong>単語クイズ＋文法＋シャドーイング</strong>で600点を目指そう！</p>
 
-  <!-- ===================== -->
-  <!-- クイズ画面（単語/文法共通） -->
-  <!-- ===================== -->
-  <section id="screen-quiz" class="screen">
-    <h2 id="quiz-title">単語クイズ</h2>
-    <p id="quiz-progress" class="quiz-progress"></p>
+        <div class="progress-wrap">
+          <div class="progress-label">進捗（現在のセット）</div>
+          <div class="progress-bar">
+            <div id="progress-inner" class="progress-inner"></div>
+          </div>
+          <div id="progress-text" class="progress-text">0 / 20</div>
+        </div>
+      </div>
 
-    <div class="quiz-card">
-      <p id="quiz-question" class="quiz-question"></p>
-      <div id="quiz-choices" class="quiz-choices"></div>
-      <p id="quiz-message" class="quiz-message"></p>
-    </div>
+      <!-- ★ ボタンのラベルから Day1 を削除 -->
+      <button id="btn-start" class="btn primary">単語クイズを始める</button>
+      <button id="btn-review" class="btn secondary" disabled>復習モード（間違えた単語）</button>
+      <button id="btn-grammar" class="btn secondary">文法クイズ（穴埋め）</button>
+      <button id="btn-shadow" class="btn secondary">シャドーイング</button>
+      <button id="btn-chat" class="btn secondary">AI英語チャット</button>
+    </section>
 
-    <div class="quiz-footer">
-      <button id="btn-quiz-next" class="primary" style="display:none;">次の問題へ</button>
-      <button id="btn-quiz-to-home" class="secondary">ホームに戻る</button>
-    </div>
-  </section>
 
-  <!-- ===================== -->
-  <!-- シャドーイング画面     -->
-  <!-- ===================== -->
-  <section id="screen-shadowing" class="screen">
-    <h2>シャドーイング練習</h2>
-    <p class="shadow-note">
-      例文を声に出して真似してみてください。<br />
-      （音声は任意ですが、声に出すだけでもかなり効果があります）
-    </p>
 
-    <div id="shadow-card" class="shadow-card">
-      <p id="shadow-en" class="shadow-en"></p>
-      <p id="shadow-ja" class="shadow-ja"></p>
-    </div>
+    <!-- ====================== 単語クイズ画面 ====================== -->
+    <section id="screen-quiz" class="screen">
+      <div class="top-bar">
+        <span id="quiz-counter">1 / 20</span>
+        <span id="quiz-mode-label">本番モード</span>
+      </div>
 
-    <div class="shadow-footer">
-      <button id="btn-shadow-prev" class="secondary">前の例文</button>
-      <button id="btn-shadow-next" class="primary">次の例文</button>
-      <button id="btn-shadow-to-home" class="secondary">ホームに戻る</button>
-    </div>
-  </section>
+      <div class="card">
+        <p id="quiz-direction" class="direction">英単語の意味を選んでください。</p>
+        <p id="quiz-question" class="question-word">word</p>
 
-  <!-- ===================== -->
-  <!-- AI英語チャット画面     -->
-  <!-- ===================== -->
-  <section id="screen-chat" class="screen">
-    <div class="chat-header-row">
-      <h2>AI英語チャット</h2>
-      <button id="btn-chat-to-home" class="secondary small">ホームへ</button>
-    </div>
+        <div id="choices" class="choices"></div>
+        <p id="feedback" class="feedback"></p>
+      </div>
 
-    <p class="chat-note">
-      TOEIC対策・ビジネスメール・英文チェックなど、英語に関することなら何でも相談できます。<br />
-      例：<br />
-      ・「increase を使ったビジネスの例文を作って」<br />
-      ・「この日本語を英語にして：明日10時に打ち合わせをしたいです」<br />
-      ・「この英文を添削して」など
-    </p>
+      <button id="btn-next" class="btn primary" style="display:none;">次へ</button>
+      <button id="btn-quit" class="btn text-btn">ホームに戻る</button>
+    </section>
 
-    <div id="chat-log" class="chat-log"></div>
 
-    <div class="chat-quick-row">
-      <button class="chat-quick" data-text="今日の単語を使って例文を作って">今日の単語で例文を作って</button>
-      <button class="chat-quick" data-text="営業のシーンで使える表現を教えて">営業シーンで使える表現を教えて</button>
-    </div>
 
-    <div class="chat-input-row">
-      <input id="chat-input" type="text" placeholder="例）increase を使ってビジネスの例文を作って" />
-      <button id="chat-send" class="primary">送信</button>
-    </div>
-  </section>
+    <!-- ====================== 結果画面 ====================== -->
+    <section id="screen-result" class="screen">
+      <h2 class="result-title">単語クイズ 結果</h2>
 
-</div>
+      <div class="card">
+        <p id="result-score" class="result-score">正解数 0 / 20</p>
+        <p id="result-rate" class="result-rate">正答率 0%</p>
+        <p id="result-rank" class="result-rank">ランク C</p>
+      </div>
 
-<script src="script.js"></script>
+      <div class="card" id="result-mistakes-box">
+        <p class="result-subtitle">要復習単語</p>
+        <ul id="mistake-list" class="word-list"></ul>
+      </div>
+
+      <button id="btn-again" class="btn primary">もう一度 単語クイズ を解く</button>
+      <button id="btn-go-review" class="btn secondary" disabled>復習モードで解き直す</button>
+      <button id="btn-back-home" class="btn text-btn">ホームへ</button>
+    </section>
+
+
+
+    <!-- ====================== 文法クイズ画面 ====================== -->
+    <section id="screen-grammar" class="screen">
+      <div class="top-bar">
+        <span>文法クイズ（例文穴埋め）</span>
+        <span id="grammar-counter">1 / 10</span>
+      </div>
+
+      <div class="card">
+        <p class="direction">文中の (_____) に入る最も適切な語を選んでください。</p>
+        <p id="grammar-question" class="question-sentence">
+          She (_____) the report yesterday.
+        </p>
+
+        <div id="grammar-choices" class="choices"></div>
+        <p id="grammar-feedback" class="feedback"></p>
+        <p id="grammar-progress" class="grammar-progress">正解数 0 / 0</p>
+      </div>
+
+      <button id="btn-grammar-next" class="btn primary" style="display:none;">次の問題へ</button>
+      <button id="btn-grammar-back" class="btn text-btn">ホームに戻る</button>
+    </section>
+
+
+
+    <!-- ====================== シャドーイング画面 ====================== -->
+    <section id="screen-shadow" class="screen">
+      <div class="top-bar">
+        <span>シャドーイング</span>
+        <span id="shadow-counter">1 / 10</span>
+      </div>
+
+      <div class="card">
+        <p class="shadow-label">英文</p>
+        <p id="shadow-en" class="shadow-sentence">
+          She attended the meeting on time.
+        </p>
+
+        <p class="shadow-label">日本語</p>
+        <p id="shadow-jp" class="shadow-translation">
+          彼女は会議に時間通りに出席した。
+        </p>
+      </div>
+
+      <div class="card shadow-controls">
+        <button id="btn-shadow-play-normal" class="btn primary">通常スピードで再生</button>
+        <button id="btn-shadow-play-slow"   class="btn secondary">ゆっくり再生</button>
+        <button id="btn-shadow-repeat"      class="btn secondary">もう一度</button>
+        <button id="btn-shadow-next"        class="btn primary">次の文へ</button>
+        <button id="btn-shadow-back"        class="btn text-btn">ホームに戻る</button>
+      </div>
+    </section>
+
+
+
+    <!-- ====================== AI英語チャット画面 ====================== -->
+    <section id="screen-chat" class="screen">
+      <div class="top-bar">
+        <span>AI英語チャット</span>
+        <span class="chat-subtitle">英語なんでも相談</span>
+      </div>
+
+      <div class="card chat-card">
+        <div id="chat-log" class="chat-log"></div>
+      </div>
+
+      <div class="chat-quick">
+        <button id="btn-chat-example" class="btn secondary">今日の単語で例文を作って</button>
+        <button id="btn-chat-sales" class="btn secondary">営業のシーンで使える表現を教えて</button>
+      </div>
+
+      <div class="chat-input-row">
+        <input id="chat-input" class="chat-input" type="text"
+          placeholder="例）increase を使ってビジネスの例文を作って" />
+        <button id="btn-chat-send" class="btn primary chat-send-btn">送信</button>
+      </div>
+
+      <button id="btn-chat-back" class="btn text-btn">ホームに戻る</button>
+    </section>
+
+  </div>
+
+
+
+  <!-- ====================== 効果音 ====================== -->
+  <audio id="se-correct" src="sounds/correct.wav"></audio>
+  <audio id="se-next"    src="sounds/next.wav"></audio>
+  <audio id="se-wrong"   src="sounds/wrong.wav"></audio>
+  <audio id="se-click"   src="sounds/click.wav"></audio>
+
+  <!-- ====================== シャドーイング用音声（1つを動的に切り替え） ====================== -->
+  <audio id="shadow-audio"></audio>
+
+  <!-- ★ 必ず body の一番最後に script を置く -->
+  <script src="script.js"></script>
 </body>
 </html>
