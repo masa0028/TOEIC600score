@@ -17,7 +17,7 @@
 
       <div class="card">
         <p>今日のミッション：</p>
-        <p><strong>単語クイズ＋文法＋シャドーイング</strong>で600点を目指そう！</p>
+        <p><strong>単語クイズ＋文法＋発音トレーニング</strong>で600点を目指そう！</p>
 
         <div class="progress-wrap">
           <div class="progress-label">進捗（現在のセット）</div>
@@ -30,8 +30,14 @@
 
       <button id="btn-start" class="btn primary">Day1クエスト（単語クイズ）</button>
       <button id="btn-review" class="btn secondary" disabled>復習モード（間違えた単語）</button>
+
       <button id="btn-grammar" class="btn secondary">文法クイズ（穴埋め）</button>
-      <button id="btn-shadow" class="btn secondary">シャドーイング</button>
+      <!-- 文法の復習モードボタンを追加 -->
+      <button id="btn-grammar-review-home" class="btn secondary" disabled>
+        文法復習モード（間違えた文法）
+      </button>
+
+      <button id="btn-shadow" class="btn secondary">発音トレーニング（シャドーイング）</button>
       <button id="btn-chat" class="btn secondary">AI英語チャット</button>
     </section>
 
@@ -58,7 +64,7 @@
 
 
 
-    <!-- ====================== 結果画面 ====================== -->
+    <!-- ====================== 結果画面（単語） ====================== -->
     <section id="screen-result" class="screen">
       <h2 class="result-title">Day1 結果</h2>
 
@@ -99,15 +105,20 @@
       </div>
 
       <button id="btn-grammar-next" class="btn primary" style="display:none;">次の問題へ</button>
+      <!-- 文法クイズ用 復習モードボタン（今回の間違い） -->
+      <button id="btn-grammar-review" class="btn secondary" style="display:none;">
+        復習モード（今回の間違いを解き直す）
+      </button>
+
       <button id="btn-grammar-back" class="btn text-btn">ホームに戻る</button>
     </section>
 
 
 
-    <!-- ====================== シャドーイング画面 ====================== -->
+    <!-- ====================== 発音トレーニング（シャドーイング） ====================== -->
     <section id="screen-shadow" class="screen">
       <div class="top-bar">
-        <span>シャドーイング</span>
+        <span>発音トレーニング（シャドーイング）</span>
         <span id="shadow-counter">1 / 10</span>
       </div>
 
@@ -124,11 +135,33 @@
       </div>
 
       <div class="card shadow-controls">
+        <p class="shadow-label">モデル音声</p>
         <button id="btn-shadow-play-normal" class="btn primary">通常スピードで再生</button>
         <button id="btn-shadow-play-slow"   class="btn secondary">ゆっくり再生</button>
         <button id="btn-shadow-repeat"      class="btn secondary">もう一度</button>
         <button id="btn-shadow-next"        class="btn primary">次の文へ</button>
         <button id="btn-shadow-back"        class="btn text-btn">ホームに戻る</button>
+      </div>
+
+      <!-- 発音・文法コーチ用カード -->
+      <div class="card shadow-coach">
+        <p class="shadow-label">発音＆文法トレーニング（マイク）</p>
+        <p class="shadow-note">
+          「マイクで話す」を押してから、上の英文を英語で話してください。<br>
+          発音と文法・表現について、AIコーチが日本語でフィードバックします。
+        </p>
+
+        <p class="shadow-sub-label">認識された英語</p>
+        <p id="shadow-recognized" class="shadow-recognized">
+          （ここにあなたの発話が表示されます）
+        </p>
+
+        <p class="shadow-sub-label">AIコーチからのフィードバック</p>
+        <p id="shadow-feedback" class="shadow-feedback"></p>
+
+        <button id="btn-shadow-record" class="btn primary">
+          🎤 マイクで話す
+        </button>
       </div>
     </section>
 
