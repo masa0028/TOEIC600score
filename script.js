@@ -153,20 +153,20 @@ const screens = {
   chat:   $("screen-chat")
 };
 
+// 単語クイズ用
 let quizWords = [];
 let idx = 0;
 let correct = 0;
 let mistakes = [];
+let isReviewMode = false;     // 単語クイズが復習モード中かどうか
+let reviewWords = [];         // 単語クイズの復習用（前回の間違い）
 
-// 復習モード
-let isReviewMode = false;
-let reviewWords = [];
-
-// 文法クイズ
+// 文法クイズ用
 let grammarIndex = 0;
 let grammarCorrect = 0;
-// ★ ランダム出題用の配列
 let shuffledGrammarQuestions = [];
+let grammarMistakes = [];     // 文法クイズの間違い（今回分）
+let grammarIsReview = false;  // 文法クイズの復習モード中かどうか
 
 // シャドーイング
 let shadowIndex = 0;
@@ -177,11 +177,13 @@ const seNext    = $("se-next");
 const seWrong   = $("se-wrong");
 const seClick   = $("se-click");
 
-// シャドーイング音声
-const shadowAudio   = $("shadow-audio");
-const shadowEn      = $("shadow-en");
-const shadowJp      = $("shadow-jp");
-const shadowCounter = $("shadow-counter");
+// シャドーイング音声 & 要素
+const shadowAudio     = $("shadow-audio");
+const shadowEn        = $("shadow-en");
+const shadowJp        = $("shadow-jp");
+const shadowCounter   = $("shadow-counter");
+const shadowRecognizedEl = $("shadow-recognized");
+const shadowFeedbackEl   = $("shadow-feedback");
 
 // クイズモードラベル
 const quizModeLabel = $("quiz-mode-label");
@@ -194,14 +196,16 @@ const grammarCounterEl   = $("grammar-counter");
 const grammarProgressEl  = $("grammar-progress");
 
 // 復習ボタン
-const btnReview   = $("btn-review");
-const btnGoReview = $("btn-go-review");
+const btnReview           = $("btn-review");
+const btnGoReview         = $("btn-go-review");
+const btnGrammarReview    = $("btn-grammar-review");
+const btnGrammarReviewHome= $("btn-grammar-review-home");
 
 // チャット要素
 const chatLog   = $("chat-log");
 const chatInput = $("chat-input");
 
-// Cloudflare Worker の AIエンドポイント
+// Cloudflare Worker の AIエンドポイント（既存のAIチャットと共通で使用）
 const API_ENDPOINT = "https://winter-scene-288dtoeic-chat-gpt.masayaking.workers.dev/";
 
 // 共通関数
@@ -234,7 +238,7 @@ function shuffle(a){
 function startQuiz(){
   playSE(seClick);
   isReviewMode = false;
-  quizWords = shuffle(day1Words);   // ★単語クイズはここでランダム化
+  quizWords = shuffle(day1Words);   // 本番は全単語をランダム
   idx = 0;
   correct = 0;
   mistakes = [];
@@ -251,7 +255,7 @@ function startReviewQuiz(){
   }
   playSE(seClick);
   isReviewMode = true;
-  quizWords = shuffle(reviewWords);
+  quizWords = shuffle(reviewWords);   // 前回の間違いだけ
   idx = 0;
   correct = 0;
   mistakes = [];
@@ -306,7 +310,7 @@ function handleAnswer(btn, choice, correctAns, q){
   } else {
     btn.classList.add("wrong");
     $("feedback").textContent = `不正解… 正解: ${correctAns}`;
-    mistakes.push(q);
+    mistakes.push(q);   // 今回間違えた問題を記録
     playSE(seWrong);
   }
 
@@ -340,21 +344,48 @@ function showResult(){
     list.appendChild(li);
   });
 
-  reviewWords = mistakes.slice();
-  const hasReview = reviewWords.length > 0;
-  if (btnReview)   btnReview.disabled   = !hasReview;
-  if (btnGoReview) btnGoReview.disabled = !hasReview;
+  if (!isReviewMode){
+    // 本番モードの場合：今回の間違いを復習プールにセット
+    reviewWords = mistakes.slice();
+    const hasReview = reviewWords.length > 0;
+    if (btnReview)           btnReview.disabled           = !hasReview;
+    if (btnGoReview)         btnGoReview.disabled         = !hasReview;
+  } else {
+    // 復習モードが終わったら、復習対象から削除（＝もう出題されない）
+    reviewWords = [];
+    if (btnReview)           btnReview.disabled           = true;
+    if (btnGoReview)         btnGoReview.disabled         = true;
+    isReviewMode = false;
+  }
 
   show("result");
 }
 
-// ==================== 文法クイズ（ランダム出題） ====================
+// ==================== 文法クイズ（本番 + 復習モード） ====================
 
 function startGrammarQuiz() {
   playSE(seClick);
   grammarIndex = 0;
   grammarCorrect = 0;
-  shuffledGrammarQuestions = shuffle(grammarQuestions); // ★ここで問題順ランダム
+  grammarIsReview = false;
+  grammarMistakes = [];                      // 今回の間違いをリセット
+  shuffledGrammarQuestions = shuffle(grammarQuestions); // 本番は全問ランダム
+  show("grammar");
+  renderGrammarQuestion();
+}
+
+function startGrammarReview() {
+  if (grammarMistakes.length === 0){
+    alert("この回で間違えた文法問題はありません。");
+    return;
+  }
+  playSE(seClick);
+  grammarIsReview = true;
+  grammarIndex = 0;
+  grammarCorrect = 0;
+  shuffledGrammarQuestions = shuffle(grammarMistakes);  // 間違えた問題だけ
+  // 復習を始めるので、ホームの「文法復習モード」ボタンは一旦無効
+  if (btnGrammarReviewHome) btnGrammarReviewHome.disabled = true;
   show("grammar");
   renderGrammarQuestion();
 }
@@ -371,6 +402,7 @@ function renderGrammarQuestion() {
   grammarCounterEl.textContent  = `${grammarIndex + 1} / ${total}`;
   grammarFeedbackEl.textContent = "";
   $("btn-grammar-next").style.display = "none";
+  if (btnGrammarReview) btnGrammarReview.style.display = "none";
 
   grammarProgressEl.textContent = `正解数 ${grammarCorrect} / ${grammarIndex}`;
 
@@ -401,6 +433,12 @@ function handleGrammarAnswer(btn, choice, q) {
     btn.classList.add("wrong");
     grammarFeedbackEl.textContent = `❌ 不正解… 正解: ${q.correct} ／ ${q.explanation}`;
     playSE(seWrong);
+    // 本番モードのときだけ、復習対象として記録
+    if (!grammarIsReview){
+      if (!grammarMistakes.includes(q)) {
+        grammarMistakes.push(q);
+      }
+    }
   }
 
   grammarProgressEl.textContent = `正解数 ${grammarCorrect} / ${grammarIndex + 1}`;
@@ -409,7 +447,7 @@ function handleGrammarAnswer(btn, choice, q) {
 
 function showGrammarResult() {
   const total = shuffledGrammarQuestions.length;
-  const rate  = Math.round(grammarCorrect / total * 100);
+  const rate  = total > 0 ? Math.round(grammarCorrect / total * 100) : 0;
   let msg = `文法クイズ 結果：${grammarCorrect} / ${total}（${rate}%）`;
 
   if (rate >= 90) msg += " すばらしい！Part5もかなり強いです。";
@@ -419,15 +457,35 @@ function showGrammarResult() {
   grammarFeedbackEl.textContent = msg;
   grammarChoicesEl.innerHTML = "";
   $("btn-grammar-next").style.display = "none";
+
+  if (!grammarIsReview && grammarMistakes.length > 0) {
+    // 本番モードの結果で、間違いがある場合だけ「復習モード」ボタン表示
+    btnGrammarReview.style.display = "inline-block";
+    if (btnGrammarReviewHome) {
+      btnGrammarReviewHome.disabled = false;   // ホームボタンも有効化
+    }
+  } else {
+    // 復習モードを完了したら、復習対象から削除（＝もう出題されない）
+    if (grammarIsReview){
+      grammarMistakes = [];
+      grammarIsReview = false;
+      if (btnGrammarReviewHome) {
+        btnGrammarReviewHome.disabled = true;
+      }
+    }
+    if (btnGrammarReview) btnGrammarReview.style.display = "none";
+  }
 }
 
-// ==================== シャドーイング ====================
+// ==================== 発音トレーニング（シャドーイング + 音声認識 + AIコーチ） ====================
 
 function startShadowing(){
   playSE(seClick);
   shadowIndex = 0;
   show("shadow");
   renderShadowSentence();
+  shadowRecognizedEl.textContent = "（ここにあなたの発話が表示されます）";
+  shadowFeedbackEl.textContent = "";
 }
 
 function renderShadowSentence(){
@@ -483,9 +541,100 @@ function nextShadowSentence(){
   playSE(seNext);
   shadowIndex++;
   renderShadowSentence();
+  shadowRecognizedEl.textContent = "（ここにあなたの発話が表示されます）";
+  shadowFeedbackEl.textContent = "";
 }
 
-// ==================== AI英語チャット（Cloudflare Worker 経由） ====================
+// ==== 音声認識 + AIコーチ ====
+
+// SpeechRecognition の準備
+let recognition = null;
+if (typeof window !== "undefined") {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) {
+    recognition = new SR();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+  }
+}
+
+// AIチャット API 呼び出し（既存チャットと共通）
+async function callChatAPI(userMessage){
+  const res = await fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: userMessage })
+  });
+
+  const data = await res.json();
+
+  if (data.reply) {
+    return data.reply;
+  }
+
+  if (data.error) {
+    return "⚠ エラーが発生しました。\n" +
+           "種類: " + data.error + "\n" +
+           "詳細: " + JSON.stringify(data.detail ?? "", null, 2);
+  }
+
+  return "⚠ 予期しないレスポンスです。";
+}
+
+// 発音＋文法の評価
+async function evaluateSpeaking(targetSentence, spokenSentence){
+  const prompt =
+    "あなたは日本人学習者向けの英語コーチです。\n" +
+    "以下の2つの英文を読み比べて、発音と文法・表現の両方について日本語でやさしくフィードバックしてください。\n" +
+    "・ターゲット文: " + targetSentence + "\n" +
+    "・学習者の発話（音声の文字起こし）: " + spokenSentence + "\n\n" +
+    "フィードバックは、\n" +
+    "1) 文法・語順がどの程度合っているか\n" +
+    "2) 不自然な表現があればどこか\n" +
+    "3) 改善した例文（英語）\n" +
+    "を、できるだけ短く箇条書きで教えてください。";
+
+  return await callChatAPI(prompt);
+}
+
+function startRecording(){
+  if (!recognition){
+    alert("このブラウザは音声認識に対応していません。\nChrome などの最新ブラウザでお試しください。");
+    return;
+  }
+  try {
+    shadowFeedbackEl.textContent = "録音中です… 上の英文を英語で話してください。";
+    shadowRecognizedEl.textContent = "";
+    recognition.start();
+  } catch (e) {
+    console.log("recognition start error", e);
+  }
+}
+
+if (recognition){
+  recognition.addEventListener("result", async (event) => {
+    const spoken = event.results[0][0].transcript;
+    shadowRecognizedEl.textContent = spoken;
+    shadowFeedbackEl.textContent = "AIコーチが評価中です…";
+
+    try {
+      const target = shadowSentences[shadowIndex].en;
+      const reply = await evaluateSpeaking(target, spoken);
+      shadowFeedbackEl.textContent = reply;
+    } catch (e) {
+      console.error(e);
+      shadowFeedbackEl.textContent = "⚠ 評価中にエラーが発生しました。\n" + e.toString();
+    }
+  });
+
+  recognition.addEventListener("error", (e) => {
+    console.log("recognition error", e);
+    shadowFeedbackEl.textContent = "⚠ 音声認識中にエラーが発生しました。もう一度お試しください。";
+  });
+}
+
+// ==================== AI英語チャット（通常チャット） ====================
 
 function startChat(){
   playSE(seClick);
@@ -512,28 +661,6 @@ function addMessage(text, isUser){
 
 function addUserMessage(text){ addMessage(text, true); }
 function addBotMessage(text){ addMessage(text, false); }
-
-async function callChatAPI(userMessage){
-  const res = await fetch(API_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: userMessage })
-  });
-
-  const data = await res.json();
-
-  if (data.reply) {
-    return data.reply;
-  }
-
-  if (data.error) {
-    return "⚠ エラーが発生しました。\n" +
-           "種類: " + data.error + "\n" +
-           "詳細: " + JSON.stringify(data.detail ?? "", null, 2);
-  }
-
-  return "⚠ 予期しないレスポンスです。";
-}
 
 async function handleChatSend(customText){
   const text = (typeof customText === "string" ? customText : chatInput.value).trim();
@@ -562,15 +689,19 @@ window.addEventListener("DOMContentLoaded", () => {
   const btnQuit      = $("btn-quit");
   const btnAgain     = $("btn-again");
   const btnBackHome  = $("btn-back-home");
-  const btnGrammar   = $("btn-grammar");
-  const btnGrammarNext = $("btn-grammar-next");
-  const btnGrammarBack = $("btn-grammar-back");
-  const btnShadow    = $("btn-shadow");
+
+  const btnGrammar        = $("btn-grammar");
+  const btnGrammarNext    = $("btn-grammar-next");
+  const btnGrammarBack    = $("btn-grammar-back");
+
+  const btnShadow         = $("btn-shadow");
   const btnShadowPlayNormal = $("btn-shadow-play-normal");
   const btnShadowPlaySlow   = $("btn-shadow-play-slow");
   const btnShadowRepeat     = $("btn-shadow-repeat");
   const btnShadowNext       = $("btn-shadow-next");
   const btnShadowBack       = $("btn-shadow-back");
+  const btnShadowRecord     = $("btn-shadow-record");
+
   const btnChat     = $("btn-chat");
   const btnChatSend = $("btn-chat-send");
   const btnChatBack = $("btn-chat-back");
@@ -589,6 +720,8 @@ window.addEventListener("DOMContentLoaded", () => {
   if (btnGrammar)      btnGrammar.onclick      = startGrammarQuiz;
   if (btnGrammarNext)  btnGrammarNext.onclick  = () => { playSE(seNext); grammarIndex++; renderGrammarQuestion(); };
   if (btnGrammarBack)  btnGrammarBack.onclick  = () => { playSE(seClick); show("home"); };
+  if (btnGrammarReview)     btnGrammarReview.onclick     = startGrammarReview;
+  if (btnGrammarReviewHome) btnGrammarReviewHome.onclick = startGrammarReview;
 
   if (btnShadow)            btnShadow.onclick            = startShadowing;
   if (btnShadowPlayNormal)  btnShadowPlayNormal.onclick  = () => { playSE(seClick); playShadowNormal(); };
@@ -596,6 +729,7 @@ window.addEventListener("DOMContentLoaded", () => {
   if (btnShadowRepeat)      btnShadowRepeat.onclick      = () => { playSE(seClick); repeatShadow(); };
   if (btnShadowNext)        btnShadowNext.onclick        = () => { nextShadowSentence(); };
   if (btnShadowBack)        btnShadowBack.onclick        = () => { playSE(seClick); show("home"); };
+  if (btnShadowRecord)      btnShadowRecord.onclick      = () => { playSE(seClick); startRecording(); };
 
   if (btnChat)       btnChat.onclick       = startChat;
   if (btnChatSend)   btnChatSend.onclick   = () => handleChatSend();
