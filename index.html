@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>TOEIC 600 Quest - 単語クイズ</title>
+  <title>TOEIC 600 Quest - Day1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -13,7 +13,7 @@
     <!-- ====================== ホーム画面 ====================== -->
     <section id="screen-home" class="screen active">
       <h1 class="app-title">TOEIC 600 Quest</h1>
-      <p class="app-sub">単語クイズ：必須単語20語トレーニング</p>
+      <p class="app-sub">Day1：必須単語20語トレーニング</p>
 
       <div class="card">
         <p>今日のミッション：</p>
@@ -28,8 +28,7 @@
         </div>
       </div>
 
-      <!-- ★ ボタンのラベルから Day1 を削除 -->
-      <button id="btn-start" class="btn primary">単語クイズを始める</button>
+      <button id="btn-start" class="btn primary">Day1クエスト（単語クイズ）</button>
       <button id="btn-review" class="btn secondary" disabled>復習モード（間違えた単語）</button>
       <button id="btn-grammar" class="btn secondary">文法クイズ（穴埋め）</button>
       <button id="btn-shadow" class="btn secondary">シャドーイング</button>
@@ -61,7 +60,7 @@
 
     <!-- ====================== 結果画面 ====================== -->
     <section id="screen-result" class="screen">
-      <h2 class="result-title">単語クイズ 結果</h2>
+      <h2 class="result-title">Day1 結果</h2>
 
       <div class="card">
         <p id="result-score" class="result-score">正解数 0 / 20</p>
@@ -74,7 +73,7 @@
         <ul id="mistake-list" class="word-list"></ul>
       </div>
 
-      <button id="btn-again" class="btn primary">もう一度 単語クイズ を解く</button>
+      <button id="btn-again" class="btn primary">もう一度 Day1 を解く</button>
       <button id="btn-go-review" class="btn secondary" disabled>復習モードで解き直す</button>
       <button id="btn-back-home" class="btn text-btn">ホームへ</button>
     </section>
