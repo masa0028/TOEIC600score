@@ -192,7 +192,7 @@ function startQuiz(){
 
 function startReviewQuiz(){
   if (reviewWords.length === 0){
-    alert("復習対象の単語がありません。\nまずはDay1クエストを解いて、間違えた単語をためましょう。");
+    alert("復習対象の単語がありません。\nまずは単語クイズを解いて、間違えた単語をためましょう。");
     return;
   }
   playSE(seClick);
@@ -255,7 +255,7 @@ function handleAnswer(btn, choice, correctAns, q){
     mistakes.push(q);   // 今回間違えた問題
     playSE(seWrong);
 
-    // ★ 本番モードで1問でも間違えたら、その時点で復習モードをONにする
+    // ★ 本番モードで1問でも間違えたら、その時点で復習モードをON
     if (!isReviewMode){
       if (!reviewWords.find(w => w.word === q.word)){
         reviewWords.push(q);
@@ -297,7 +297,7 @@ function showResult(){
   });
 
   if (!isReviewMode){
-    // ★ セッション終了時にも、間違えた問題をユニークにまとめ直す
+    // セッション終了時にも、今回の間違いだけを復習用にまとめる
     const unique = new Map();
     mistakes.forEach(w => unique.set(w.word, w));
     reviewWords = Array.from(unique.values());
@@ -339,7 +339,7 @@ function startGrammarReview() {
   grammarIndex = 0;
   grammarCorrect = 0;
   shuffledGrammarQuestions = shuffle(grammarMistakes);  // 間違えた問題だけ
-  if (btnGrammarReviewHome) btnGrammarReviewHome.disabled = true;
+  // ★ ホームに戻っても復習ボタンを使えるようにするため、ここでは無効化しない
   show("grammar");
   renderGrammarQuestion();
 }
@@ -389,7 +389,7 @@ function handleGrammarAnswer(btn, choice, q) {
     playSE(seWrong);
 
     if (!grammarIsReview){
-      // ★ 本番モードで1問でも間違えたら、その時点で復習モードをON
+      // 本番モードで1問でも間違えたら、その時点で復習モードをON
       if (!grammarMistakes.includes(q)) {
         grammarMistakes.push(q);
       }
@@ -420,6 +420,7 @@ function showGrammarResult() {
     if (btnGrammarReviewHome) btnGrammarReviewHome.disabled = false;
   } else {
     if (grammarIsReview){
+      // 復習モード完了後は、復習対象をクリア
       grammarMistakes = [];
       grammarIsReview = false;
       if (btnGrammarReviewHome) btnGrammarReviewHome.disabled = true;
@@ -435,42 +436,51 @@ let recognition = null;
 let isRecording = false;
 
 if (typeof window !== "undefined") {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (SR) {
-    recognition = new SR();
-    recognition.lang = "en-US";
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
+  try {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SR) {
+      recognition = new SR();
+      recognition.lang = "en-US";
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
 
-    recognition.addEventListener("result", (event) => {
-      let text = "";
-      for (let i = 0; i < event.results.length; i++){
-        text += event.results[i][0].transcript + " ";
-      }
-      text = text.trim();
-      lastRecognizedText = text;
-      if (shadowRecognizedEl) {
-        shadowRecognizedEl.textContent = text || "（音声がまだ認識されていません）";
-      }
-      if (shadowFeedbackEl) {
-        shadowFeedbackEl.textContent = "録音中… 停止ボタンを押すとチェックします。";
-      }
-    });
+      recognition.addEventListener("result", (event) => {
+        let text = "";
+        for (let i = 0; i < event.results.length; i++){
+          text += event.results[i][0].transcript + " ";
+        }
+        text = text.trim();
+        lastRecognizedText = text;
+        if (shadowRecognizedEl) {
+          shadowRecognizedEl.textContent = text || "（音声がまだ認識されていません）";
+        }
+        if (shadowFeedbackEl) {
+          shadowFeedbackEl.textContent = "録音中… 停止ボタンを押すとチェックします。";
+        }
+      });
 
-    recognition.addEventListener("end", () => {
-      isRecording = false;
-    });
+      recognition.addEventListener("end", () => {
+        isRecording = false;
+      });
 
-    recognition.addEventListener("error", (e) => {
-      console.log("speech recognition error", e);
-      if (shadowRecognizedEl) {
-        shadowRecognizedEl.textContent = "⚠ 音声認識中にエラーが発生しました。もう一度お試しください。";
-      }
-      if (shadowFeedbackEl) {
-        shadowFeedbackEl.textContent = "エラーが発生しました。マイク権限やブラウザ設定を確認してください。";
-      }
-      isRecording = false;
-    });
+      recognition.addEventListener("error", (e) => {
+        console.log("speech recognition error", e);
+        if (shadowRecognizedEl) {
+          shadowRecognizedEl.textContent = "⚠ 音声認識中にエラーが発生しました。";
+        }
+        if (shadowFeedbackEl) {
+          shadowFeedbackEl.textContent =
+            "音声認識でエラーが発生しました。\n" +
+            "・マイク権限が許可されているか\n" +
+            "・Chrome など対応ブラウザを使っているか\n" +
+            "を確認してください。";
+        }
+        isRecording = false;
+      });
+    }
+  } catch (e) {
+    console.log("SpeechRecognition init error", e);
+    recognition = null;
   }
 }
 
@@ -482,13 +492,24 @@ function openPronunciationScreen(){
     shadowRecognizedEl.textContent = "（ここにあなたの発話が表示されます）";
   }
   if (shadowFeedbackEl) {
-    shadowFeedbackEl.textContent = "停止ボタンを押すと、文法・表現のチェック結果が表示されます。";
+    if (!recognition) {
+      shadowFeedbackEl.textContent =
+        "このブラウザは音声認識に対応していない可能性があります。\n" +
+        "PC版 Google Chrome などでお試しください。";
+    } else {
+      shadowFeedbackEl.textContent =
+        "「マイクで話す」を押して話し、停止ボタンで文法・表現チェックを行います。";
+    }
   }
 }
 
 function startRecording(){
   if (!recognition){
-    alert("このブラウザは音声認識に対応していません。\nChrome などの最新ブラウザでお試しください。");
+    alert("このブラウザは音声認識に対応していません。\nPC版 Google Chrome などでお試しください。");
+    if (shadowFeedbackEl) {
+      shadowFeedbackEl.textContent =
+        "音声認識が利用できません。ブラウザまたはデバイスを変えてお試しください。";
+    }
     return;
   }
   if (isRecording) return;
@@ -500,18 +521,21 @@ function startRecording(){
       shadowRecognizedEl.textContent = "Listening...（話してください）";
     }
     if (shadowFeedbackEl) {
-      shadowFeedbackEl.textContent = "録音中… 話し終わったら「停止（チェック）」を押してください。";
+      shadowFeedbackEl.textContent =
+        "録音中… 話し終わったら「停止（チェック）」を押してください。";
     }
   } catch (e){
     console.log("recognition start error", e);
     isRecording = false;
+    alert("音声認識を開始できませんでした。\nHTTPS か、対応ブラウザかを確認してください。");
+    if (shadowFeedbackEl) {
+      shadowFeedbackEl.textContent =
+        "音声認識の開始に失敗しました。ブラウザ設定や権限を確認してください。";
+    }
   }
 }
 
 async function stopRecording(){
-  if (!recognition && !lastRecognizedText) return;
-
-  // 音声認識を停止
   if (recognition && isRecording) {
     try {
       recognition.stop();
@@ -523,11 +547,13 @@ async function stopRecording(){
 
   const text = (lastRecognizedText || (shadowRecognizedEl ? shadowRecognizedEl.textContent : "")).trim();
 
-  if (!text || text === "Listening...（話してください）" ||
+  if (!text ||
+      text === "Listening...（話してください）" ||
       text === "（ここにあなたの発話が表示されます）" ||
       text.startsWith("⚠")) {
     if (shadowFeedbackEl) {
-      shadowFeedbackEl.textContent = "話した内容が取得できませんでした。もう一度お試しください。";
+      shadowFeedbackEl.textContent =
+        "話した内容が取得できませんでした。マイク権限やブラウザを確認して、もう一度お試しください。";
     }
     return;
   }
@@ -670,7 +696,14 @@ window.addEventListener("DOMContentLoaded", () => {
 
   if (btnGrammar)      btnGrammar.onclick      = startGrammarQuiz;
   if (btnGrammarNext)  btnGrammarNext.onclick  = () => { playSE(seNext); grammarIndex++; renderGrammarQuestion(); };
-  if (btnGrammarBack)  btnGrammarBack.onclick  = () => { playSE(seClick); show("home"); };
+  if (btnGrammarBack)  btnGrammarBack.onclick  = () => {
+    playSE(seClick);
+    show("home");
+    // ★ 復習モード中にホームへ戻った場合も、復習対象が残っていればホーム側で復習可能
+    if (btnGrammarReviewHome) {
+      btnGrammarReviewHome.disabled = (grammarMistakes.length === 0);
+    }
+  };
   if (btnGrammarReview)     btnGrammarReview.onclick     = startGrammarReview;
   if (btnGrammarReviewHome) btnGrammarReviewHome.onclick = startGrammarReview;
 
