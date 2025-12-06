@@ -138,12 +138,14 @@ const btnGrammarReviewHome = $("btn-grammar-review-home");
 
 // 発音トレーニング要素
 const shadowRecognizedEl = $("shadow-recognized");
+const shadowFeedbackEl   = $("shadow-feedback");
+let lastRecognizedText   = "";
 
 // チャット要素
 const chatLog   = $("chat-log");
 const chatInput = $("chat-input");
 
-// Cloudflare Worker の AIエンドポイント（AIチャット用）
+// Cloudflare Worker の AIエンドポイント（AIチャット＆発音チェック用）
 const API_ENDPOINT = "https://winter-scene-288dtoeic-chat-gpt.masayaking.workers.dev/";
 
 // 共通関数
@@ -255,7 +257,6 @@ function handleAnswer(btn, choice, correctAns, q){
 
     // ★ 本番モードで1問でも間違えたら、その時点で復習モードをONにする
     if (!isReviewMode){
-      // 同じ単語が複数回入らないようにユニーク管理
       if (!reviewWords.find(w => w.word === q.word)){
         reviewWords.push(q);
       }
@@ -415,12 +416,10 @@ function showGrammarResult() {
   $("btn-grammar-next").style.display = "none";
 
   if (!grammarIsReview && grammarMistakes.length > 0) {
-    // 本番終了時も、1問でも間違えていれば復習ボタンを表示
     if (btnGrammarReview)     btnGrammarReview.style.display = "inline-block";
     if (btnGrammarReviewHome) btnGrammarReviewHome.disabled = false;
   } else {
     if (grammarIsReview){
-      // 復習モード完了後は、復習対象をクリア
       grammarMistakes = [];
       grammarIsReview = false;
       if (btnGrammarReviewHome) btnGrammarReviewHome.disabled = true;
@@ -429,7 +428,7 @@ function showGrammarResult() {
   }
 }
 
-// ==================== 発音トレーニング（音声認識のみ） ====================
+// ==================== 発音トレーニング（音声認識＋AIチェック） ====================
 
 // SpeechRecognition の準備
 let recognition = null;
@@ -448,8 +447,13 @@ if (typeof window !== "undefined") {
       for (let i = 0; i < event.results.length; i++){
         text += event.results[i][0].transcript + " ";
       }
+      text = text.trim();
+      lastRecognizedText = text;
       if (shadowRecognizedEl) {
-        shadowRecognizedEl.textContent = text.trim();
+        shadowRecognizedEl.textContent = text || "（音声がまだ認識されていません）";
+      }
+      if (shadowFeedbackEl) {
+        shadowFeedbackEl.textContent = "録音中… 停止ボタンを押すとチェックします。";
       }
     });
 
@@ -462,6 +466,9 @@ if (typeof window !== "undefined") {
       if (shadowRecognizedEl) {
         shadowRecognizedEl.textContent = "⚠ 音声認識中にエラーが発生しました。もう一度お試しください。";
       }
+      if (shadowFeedbackEl) {
+        shadowFeedbackEl.textContent = "エラーが発生しました。マイク権限やブラウザ設定を確認してください。";
+      }
       isRecording = false;
     });
   }
@@ -470,8 +477,12 @@ if (typeof window !== "undefined") {
 function openPronunciationScreen(){
   playSE(seClick);
   show("shadow");
+  lastRecognizedText = "";
   if (shadowRecognizedEl) {
     shadowRecognizedEl.textContent = "（ここにあなたの発話が表示されます）";
+  }
+  if (shadowFeedbackEl) {
+    shadowFeedbackEl.textContent = "停止ボタンを押すと、文法・表現のチェック結果が表示されます。";
   }
 }
 
@@ -484,8 +495,12 @@ function startRecording(){
   isRecording = true;
   try {
     recognition.start();
+    lastRecognizedText = "";
     if (shadowRecognizedEl) {
       shadowRecognizedEl.textContent = "Listening...（話してください）";
+    }
+    if (shadowFeedbackEl) {
+      shadowFeedbackEl.textContent = "録音中… 話し終わったら「停止（チェック）」を押してください。";
     }
   } catch (e){
     console.log("recognition start error", e);
@@ -493,31 +508,48 @@ function startRecording(){
   }
 }
 
-function stopRecording(){
-  if (!recognition || !isRecording) return;
+async function stopRecording(){
+  if (!recognition && !lastRecognizedText) return;
+
+  // 音声認識を停止
+  if (recognition && isRecording) {
+    try {
+      recognition.stop();
+    } catch (e){
+      console.log("recognition stop error", e);
+    }
+  }
+  isRecording = false;
+
+  const text = (lastRecognizedText || (shadowRecognizedEl ? shadowRecognizedEl.textContent : "")).trim();
+
+  if (!text || text === "Listening...（話してください）" ||
+      text === "（ここにあなたの発話が表示されます）" ||
+      text.startsWith("⚠")) {
+    if (shadowFeedbackEl) {
+      shadowFeedbackEl.textContent = "話した内容が取得できませんでした。もう一度お試しください。";
+    }
+    return;
+  }
+
+  if (shadowFeedbackEl) {
+    shadowFeedbackEl.textContent = "AIが文法・表現をチェックしています…";
+  }
+
   try {
-    recognition.stop();
+    const reply = await evaluateSpeaking(text);
+    if (shadowFeedbackEl) {
+      shadowFeedbackEl.textContent = reply;
+    }
   } catch (e){
-    console.log("recognition stop error", e);
+    console.error(e);
+    if (shadowFeedbackEl) {
+      shadowFeedbackEl.textContent = "⚠ チェック中にエラーが発生しました。\n" + e.toString();
+    }
   }
 }
 
-// ==================== AI英語チャット ====================
-
-function startChat(){
-  playSE(seClick);
-  show("chat");
-  if (chatLog) chatLog.innerHTML = "";
-  addBotMessage(
-    "こんにちは！AI英語チャットです。\n" +
-    "翻訳・英作文・添削・TOEIC対策・ビジネスメールなど、英語に関することなら何でも質問できます。\n\n" +
-    "例：\n" +
-    "・「increase ってどういう意味？」\n" +
-    "・「この日本語を英訳して：明日10時に打ち合わせをしたいです」\n" +
-    "・「営業メールの文面を英語で作って」\n" +
-    "・「TOEICでよく出る表現を教えて」"
-  );
-}
+// ==================== AI英語チャット & 発音チェック共通のAPI呼び出し ====================
 
 function addMessage(text, isUser){
   const div = document.createElement("div");
@@ -550,6 +582,38 @@ async function callChatAPI(userMessage){
   }
 
   return "⚠ 予期しないレスポンスです。";
+}
+
+// 発音チェック用のプロンプト
+async function evaluateSpeaking(spokenSentence){
+  const prompt =
+    "あなたは日本人学習者向けの英語コーチです。\n" +
+    "以下の学習者の英文について、文法と表現の自然さを日本語でやさしくフィードバックしてください。\n\n" +
+    "学習者の英文: " + spokenSentence + "\n\n" +
+    "フィードバックは、\n" +
+    "1) 文法がどの程度合っているか（ざっくりでOK）\n" +
+    "2) 不自然な表現や直したほうがよいところ\n" +
+    "3) 改善した例文（英語）\n" +
+    "を、できるだけ短く箇条書きで教えてください。";
+
+  return await callChatAPI(prompt);
+}
+
+// ==================== AI英語チャット（通常チャット） ====================
+
+function startChat(){
+  playSE(seClick);
+  show("chat");
+  if (chatLog) chatLog.innerHTML = "";
+  addBotMessage(
+    "こんにちは！AI英語チャットです。\n" +
+    "翻訳・英作文・添削・TOEIC対策・ビジネスメールなど、英語に関することなら何でも質問できます。\n\n" +
+    "例：\n" +
+    "・「increase ってどういう意味？」\n" +
+    "・「この日本語を英訳して：明日10時に打ち合わせをしたいです」\n" +
+    "・「営業メールの文面を英語で作って」\n" +
+    "・「TOEICでよく出る表現を教えて」"
+  );
 }
 
 async function handleChatSend(customText){
