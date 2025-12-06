@@ -17,7 +17,7 @@
 
       <div class="card">
         <p>今日のミッション：</p>
-        <p><strong>単語クイズ＋文法＋発音トレーニング</strong>で600点を目指そう！</p>
+        <p><strong>単語クイズ＋文法＋AIチャット＋発音トレーニング</strong>で600点を目指そう！</p>
 
         <div class="progress-wrap">
           <div class="progress-label">進捗（現在のセット）</div>
@@ -29,15 +29,17 @@
       </div>
 
       <button id="btn-start" class="btn primary">Day1クエスト（単語クイズ）</button>
-      <button id="btn-review" class="btn secondary" disabled>復習モード（間違えた単語）</button>
+      <button id="btn-review" class="btn secondary" disabled>
+        復習モード（間違えた単語）
+      </button>
 
       <button id="btn-grammar" class="btn secondary">文法クイズ（穴埋め）</button>
-      <!-- 文法の復習モードボタンを追加 -->
       <button id="btn-grammar-review-home" class="btn secondary" disabled>
         文法復習モード（間違えた文法）
       </button>
 
-      <button id="btn-shadow" class="btn secondary">発音トレーニング（シャドーイング）</button>
+      <button id="btn-shadow" class="btn secondary">発音トレーニング</button>
+
       <button id="btn-chat" class="btn secondary">AI英語チャット</button>
     </section>
 
@@ -80,7 +82,9 @@
       </div>
 
       <button id="btn-again" class="btn primary">もう一度 Day1 を解く</button>
-      <button id="btn-go-review" class="btn secondary" disabled>復習モードで解き直す</button>
+      <button id="btn-go-review" class="btn secondary" disabled>
+        復習モードで解き直す
+      </button>
       <button id="btn-back-home" class="btn text-btn">ホームへ</button>
     </section>
 
@@ -104,8 +108,11 @@
         <p id="grammar-progress" class="grammar-progress">正解数 0 / 0</p>
       </div>
 
-      <button id="btn-grammar-next" class="btn primary" style="display:none;">次の問題へ</button>
-      <!-- 文法クイズ用 復習モードボタン（今回の間違い） -->
+      <button id="btn-grammar-next" class="btn primary" style="display:none;">
+        次の問題へ
+      </button>
+
+      <!-- 文法の復習モード（今回の間違い） -->
       <button id="btn-grammar-review" class="btn secondary" style="display:none;">
         復習モード（今回の間違いを解き直す）
       </button>
@@ -115,53 +122,37 @@
 
 
 
-    <!-- ====================== 発音トレーニング（シャドーイング） ====================== -->
+    <!-- ====================== 発音トレーニング画面 ====================== -->
     <section id="screen-shadow" class="screen">
       <div class="top-bar">
-        <span>発音トレーニング（シャドーイング）</span>
-        <span id="shadow-counter">1 / 10</span>
+        <span>発音トレーニング</span>
       </div>
 
       <div class="card">
-        <p class="shadow-label">英文</p>
-        <p id="shadow-en" class="shadow-sentence">
-          She attended the meeting on time.
+        <p class="direction">
+          「マイクで話す」を押してから、英語で話してください。<br>
+          認識された英文が下に表示されます。
         </p>
+        <p class="direction">
+          例：自己紹介・今日の出来事・仕事の内容など、自由に話してOKです。
+        </p>
+      </div>
 
-        <p class="shadow-label">日本語</p>
-        <p id="shadow-jp" class="shadow-translation">
-          彼女は会議に時間通りに出席した。
+      <div class="card">
+        <p class="shadow-label">認識された英語</p>
+        <p id="shadow-recognized" class="shadow-recognized">
+          （ここにあなたの発話が表示されます）
         </p>
       </div>
 
       <div class="card shadow-controls">
-        <p class="shadow-label">モデル音声</p>
-        <button id="btn-shadow-play-normal" class="btn primary">通常スピードで再生</button>
-        <button id="btn-shadow-play-slow"   class="btn secondary">ゆっくり再生</button>
-        <button id="btn-shadow-repeat"      class="btn secondary">もう一度</button>
-        <button id="btn-shadow-next"        class="btn primary">次の文へ</button>
-        <button id="btn-shadow-back"        class="btn text-btn">ホームに戻る</button>
-      </div>
-
-      <!-- 発音・文法コーチ用カード -->
-      <div class="card shadow-coach">
-        <p class="shadow-label">発音＆文法トレーニング（マイク）</p>
-        <p class="shadow-note">
-          「マイクで話す」を押してから、上の英文を英語で話してください。<br>
-          発音と文法・表現について、AIコーチが日本語でフィードバックします。
-        </p>
-
-        <p class="shadow-sub-label">認識された英語</p>
-        <p id="shadow-recognized" class="shadow-recognized">
-          （ここにあなたの発話が表示されます）
-        </p>
-
-        <p class="shadow-sub-label">AIコーチからのフィードバック</p>
-        <p id="shadow-feedback" class="shadow-feedback"></p>
-
         <button id="btn-shadow-record" class="btn primary">
           🎤 マイクで話す
         </button>
+        <button id="btn-shadow-stop" class="btn secondary">
+          ■ 停止
+        </button>
+        <button id="btn-shadow-back" class="btn text-btn">ホームに戻る</button>
       </div>
     </section>
 
@@ -179,14 +170,24 @@
       </div>
 
       <div class="chat-quick">
-        <button id="btn-chat-example" class="btn secondary">今日の単語で例文を作って</button>
-        <button id="btn-chat-sales" class="btn secondary">営業のシーンで使える表現を教えて</button>
+        <button id="btn-chat-example" class="btn secondary">
+          今日の単語で例文を作って
+        </button>
+        <button id="btn-chat-sales" class="btn secondary">
+          営業のシーンで使える表現を教えて
+        </button>
       </div>
 
       <div class="chat-input-row">
-        <input id="chat-input" class="chat-input" type="text"
-          placeholder="例）increase を使ってビジネスの例文を作って" />
-        <button id="btn-chat-send" class="btn primary chat-send-btn">送信</button>
+        <input
+          id="chat-input"
+          class="chat-input"
+          type="text"
+          placeholder="例）increase を使ってビジネスの例文を作って"
+        />
+        <button id="btn-chat-send" class="btn primary chat-send-btn">
+          送信
+        </button>
       </div>
 
       <button id="btn-chat-back" class="btn text-btn">ホームに戻る</button>
@@ -201,9 +202,6 @@
   <audio id="se-next"    src="sounds/next.wav"></audio>
   <audio id="se-wrong"   src="sounds/wrong.wav"></audio>
   <audio id="se-click"   src="sounds/click.wav"></audio>
-
-  <!-- ====================== シャドーイング用音声（1つを動的に切り替え） ====================== -->
-  <audio id="shadow-audio"></audio>
 
   <!-- ★ 必ず body の一番最後に script を置く -->
   <script src="script.js"></script>
