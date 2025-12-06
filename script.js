@@ -339,7 +339,6 @@ function startGrammarReview() {
   grammarIndex = 0;
   grammarCorrect = 0;
   shuffledGrammarQuestions = shuffle(grammarMistakes);  // 間違えた問題だけ
-  // ★ ホームに戻っても復習ボタンを使えるようにするため、ここでは無効化しない
   show("grammar");
   renderGrammarQuestion();
 }
@@ -431,9 +430,10 @@ function showGrammarResult() {
 
 // ==================== 発音トレーニング（音声認識＋AIチェック） ====================
 
-// SpeechRecognition の準備
+// SpeechRecognition の準備（continuous + 手動停止まで録音し続ける）
 let recognition = null;
-let isRecording = false;
+let isRecording = false;   // 録音中かどうか
+let manualStop  = false;   // 停止ボタンで止めたかどうか
 
 if (typeof window !== "undefined") {
   try {
@@ -442,8 +442,10 @@ if (typeof window !== "undefined") {
       recognition = new SR();
       recognition.lang = "en-US";
       recognition.interimResults = true;
+      recognition.continuous = true;   // ★ 無音になっても録音を続けるモード
       recognition.maxAlternatives = 1;
 
+      // 認識結果
       recognition.addEventListener("result", (event) => {
         let text = "";
         for (let i = 0; i < event.results.length; i++){
@@ -452,21 +454,36 @@ if (typeof window !== "undefined") {
         text = text.trim();
         lastRecognizedText = text;
         if (shadowRecognizedEl) {
-          shadowRecognizedEl.textContent = text || "（音声がまだ認識されていません）";
+          shadowRecognizedEl.textContent =
+            text || "（音声がまだ認識されていません）";
         }
         if (shadowFeedbackEl) {
-          shadowFeedbackEl.textContent = "録音中… 停止ボタンを押すとチェックします。";
+          shadowFeedbackEl.textContent =
+            "録音中… 停止ボタンを押すとチェックします。";
         }
       });
 
+      // 認識が一旦終了したとき
       recognition.addEventListener("end", () => {
-        isRecording = false;
+        // 無音などで勝手に止まった場合は、停止ボタンが押されていなければ自動再開
+        if (isRecording && !manualStop) {
+          try {
+            recognition.start();
+          } catch (e) {
+            console.log("restart recognition error", e);
+            isRecording = false;
+          }
+        } else {
+          isRecording = false;
+        }
       });
 
       recognition.addEventListener("error", (e) => {
         console.log("speech recognition error", e);
+
         if (shadowRecognizedEl) {
-          shadowRecognizedEl.textContent = "⚠ 音声認識中にエラーが発生しました。";
+          shadowRecognizedEl.textContent =
+            "⚠ 音声認識中にエラーが発生しました。";
         }
         if (shadowFeedbackEl) {
           shadowFeedbackEl.textContent =
@@ -513,7 +530,10 @@ function startRecording(){
     return;
   }
   if (isRecording) return;
+
+  manualStop = false;     // 停止ボタンで止めていない状態
   isRecording = true;
+
   try {
     recognition.start();
     lastRecognizedText = "";
@@ -536,6 +556,8 @@ function startRecording(){
 }
 
 async function stopRecording(){
+  // 停止ボタンが押されたことを記録
+  manualStop = true;
   if (recognition && isRecording) {
     try {
       recognition.stop();
@@ -570,7 +592,8 @@ async function stopRecording(){
   } catch (e){
     console.error(e);
     if (shadowFeedbackEl) {
-      shadowFeedbackEl.textContent = "⚠ チェック中にエラーが発生しました。\n" + e.toString();
+      shadowFeedbackEl.textContent =
+        "⚠ チェック中にエラーが発生しました。\n" + e.toString();
     }
   }
 }
@@ -699,7 +722,7 @@ window.addEventListener("DOMContentLoaded", () => {
   if (btnGrammarBack)  btnGrammarBack.onclick  = () => {
     playSE(seClick);
     show("home");
-    // ★ 復習モード中にホームへ戻った場合も、復習対象が残っていればホーム側で復習可能
+    // 復習モード中にホームへ戻った場合も、復習対象が残っていればホーム側で復習可能
     if (btnGrammarReviewHome) {
       btnGrammarReviewHome.disabled = (grammarMistakes.length === 0);
     }
