@@ -1,5 +1,5 @@
 /* =========================
-   全体レイアウト
+   ベースレイアウト / 青空テーマ
 ========================= */
 
 * {
@@ -12,41 +12,37 @@ html, body {
   height: 100%;
 }
 
-/* =========================
-   背景デザイン（青空テーマ）
-========================= */
-
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   color: #062042;
   height: 100vh;
-  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  /* ★ 青空 × 雲表現 */
-  background: 
-      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.5), transparent 55%),
-      radial-gradient(circle at 70% 35%, rgba(255,255,255,0.35), transparent 60%),
-      radial-gradient(circle at 50% 80%, rgba(255,255,255,0.35), transparent 70%),
-      linear-gradient(180deg, #bfe8ff 0%, #9ed7ff 40%, #62b7ff 100%);
-  
+  /* 青空 + ほんのり雲 */
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.55), transparent 55%),
+    radial-gradient(circle at 70% 35%, rgba(255,255,255,0.4), transparent 60%),
+    radial-gradient(circle at 50% 80%, rgba(255,255,255,0.4), transparent 70%),
+    linear-gradient(180deg, #cfe9ff 0%, #a7d6ff 40%, #74b9ff 100%);
   background-size: cover;
   background-attachment: fixed;
 }
+
+/* うっすら光のレイヤー（お好みで） */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: 
+  background:
     radial-gradient(circle at 85% 10%, rgba(255,255,255,0.55), transparent 70%),
     radial-gradient(circle at 15% 90%, rgba(255,255,255,0.25), transparent 80%);
   opacity: 0.35;
 }
 
-/* スマホでも中央にカードが来るように */
+/* アプリ全体のコンテナ */
 #app {
   width: 100%;
   max-width: 480px;
@@ -54,6 +50,8 @@ body::before {
   padding: 16px 16px 24px;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1; /* body::before より上に表示 */
 }
 
 /* =========================
@@ -79,17 +77,18 @@ body::before {
 ========================= */
 
 .app-title {
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   font-weight: 700;
   text-align: center;
   margin: 8px 0 4px;
   letter-spacing: 0.08em;
+  color: #062042;
 }
 
 .app-sub {
   text-align: center;
   font-size: 0.85rem;
-  color: #a5b4fc;
+  color: #1e3a8a; /* 少し濃いめにして読みやすく */
   margin-bottom: 16px;
 }
 
@@ -98,15 +97,16 @@ body::before {
 ========================= */
 
 .card {
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 16px;
-  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.97);
+  border: 1px solid rgba(15, 23, 42, 0.9);
+  border-radius: 20px;
+  padding: 16px 18px;
   margin-bottom: 14px;
   box-shadow:
     0 18px 35px rgba(15, 23, 42, 0.7),
     0 0 0 1px rgba(15, 23, 42, 0.9) inset;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  color: #e5e7eb; /* ★ カード内の文字は明るい色で固定 */
 }
 
 .menu-buttons {
@@ -136,7 +136,7 @@ body::before {
   background: rgba(15, 23, 42, 0.9);
   border-radius: 999px;
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.6);
 }
 
 .progress-inner {
@@ -168,13 +168,17 @@ body::before {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, background 0.15s ease-out, color 0.15s ease-out;
+  transition:
+    transform 0.08s ease-out,
+    box-shadow 0.08s ease-out,
+    background 0.15s ease-out,
+    color 0.15s ease-out;
   outline: none;
   width: 100%;
 }
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.65;        /* ★ 少し濃くして読めるように */
   cursor: default;
   box-shadow: none;
 }
@@ -183,34 +187,34 @@ body::before {
 .btn.primary {
   background: linear-gradient(135deg, #38bdf8, #6366f1);
   color: #0b1020;
-  box-shadow: 0 12px 20px rgba(56, 189, 248, 0.25);
+  box-shadow: 0 12px 20px rgba(56, 189, 248, 0.35);
 }
 
 .btn.primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 16px 26px rgba(56, 189, 248, 0.28);
+  box-shadow: 0 16px 26px rgba(56, 189, 248, 0.4);
 }
 
 .btn.primary:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 8px 14px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 8px 14px rgba(56, 189, 248, 0.25);
 }
 
-/* セカンダリーボタン（枠線） */
+/* セカンダリー（薄い白系ピル） */
 .btn.secondary {
-  background: transparent;
-  color: #e5e7eb;
-  border: 1px solid rgba(148, 163, 184, 0.8);
+  background: rgba(255, 255, 255, 0.3);
+  color: #062042;
+  border: 1px solid rgba(148, 163, 184, 0.7);
 }
 
 .btn.secondary:hover:not(:disabled) {
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(255, 255, 255, 0.55);
 }
 
 /* テキストリンク風ボタン */
 .btn.text-btn {
   background: transparent;
-  color: #9ca3af;
+  color: #334155;
   font-weight: 500;
   box-shadow: none;
   padding: 6px 4px;
@@ -219,12 +223,12 @@ body::before {
 }
 
 .btn.text-btn:hover {
-  color: #e5e7eb;
+  color: #0f172a;
   text-decoration: underline;
 }
 
 /* =========================
-   単語クイズ / 共通テキスト
+   共通テキスト・クイズ
 ========================= */
 
 .top-bar {
@@ -249,12 +253,14 @@ body::before {
   font-weight: 700;
   text-align: center;
   margin: 6px 0 10px;
+  color: #f9fafb;
 }
 
 .question-sentence {
   font-size: 1rem;
   line-height: 1.5;
   margin-top: 4px;
+  color: #e5e7eb;
 }
 
 .choices {
@@ -269,26 +275,29 @@ body::before {
   padding: 8px 10px;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.7);
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(15, 23, 42, 0.9);
   color: #e5e7eb;
   font-size: 0.9rem;
   text-align: left;
   cursor: pointer;
-  transition: background 0.12s ease-out, transform 0.05s ease-out, border-color 0.12s ease-out;
+  transition:
+    background 0.12s ease-out,
+    transform 0.05s ease-out,
+    border-color 0.12s ease-out;
 }
 
 .choice-btn:hover:not(:disabled) {
-  background: rgba(30, 64, 175, 0.75);
+  background: rgba(30, 64, 175, 0.9);
   transform: translateY(-1px);
   border-color: #60a5fa;
 }
 
 .choice-btn:disabled {
   cursor: default;
-  opacity: 0.9;
+  opacity: 0.98;
 }
 
-/* 正解・不正解の色 */
+/* 正解・不正解色 */
 .choice-btn.correct {
   background: linear-gradient(135deg, #22c55e, #16a34a);
   border-color: #4ade80;
@@ -303,8 +312,9 @@ body::before {
 /* 解説・フィードバック */
 .feedback {
   margin-top: 10px;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   min-height: 1.4em;
+  color: #e5e7eb;
 }
 
 /* =========================
@@ -315,6 +325,7 @@ body::before {
   text-align: center;
   margin-bottom: 12px;
   font-size: 1.2rem;
+  color: #f9fafb;
 }
 
 .result-score {
@@ -374,11 +385,13 @@ body::before {
   font-size: 0.95rem;
   min-height: 2.5em;
   white-space: pre-wrap;
+  color: #e5e7eb;
 }
 
 .shadow-feedback {
   font-size: 0.9rem;
   white-space: pre-wrap;
+  color: #e5e7eb;
 }
 
 .shadow-controls {
@@ -449,6 +462,10 @@ body::before {
   font-size: 0.9rem;
 }
 
+.chat-input::placeholder {
+  color: #94a3b8;
+}
+
 .chat-input:focus {
   outline: none;
   border-color: #60a5fa;
@@ -469,12 +486,7 @@ body::before {
     padding-bottom: 32px;
   }
 
-  .app-title {
-    font-size: 1.8rem;
-  }
-
   .card {
-    padding: 16px 18px;
     margin-bottom: 16px;
   }
 }
