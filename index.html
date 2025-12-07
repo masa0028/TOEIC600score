@@ -192,53 +192,61 @@
       <button id="btn-chat-back" class="btn text-btn">ホームに戻る</button>
     </section>
 
-    <!-- ====================== AI英会話（キャラ＋マイク） ====================== -->
+     <!-- ====================== AI英会話（Onitama：音声会話） ====================== -->
     <section id="screen-talk" class="screen">
       <div class="top-bar">
-        <span>AI英会話</span>
-        <span class="chat-subtitle">Onitamaキャラと会話</span>
+        <span>AI英会話（Onitama）</span>
+        <span class="chat-subtitle">おにぎりくんと英語でおしゃべり</span>
       </div>
 
+      <!-- キャラクターカード -->
       <div class="card talk-header">
         <div class="char-avatar">
           <div class="char-face">🍙</div>
         </div>
         <div class="talk-intro">
           <p class="direction">
-            Onitamaキャラと英会話の練習ができます。<br />
-            マイクで話す → 停止ボタンで送信 → キャラが英語＆日本語で返事をします。
+            マイクをオンにして英語で話すと、Onigiri-kun が返事をしてくれます。<br />
+            少し文法が間違っていても、意味をくみ取って会話を続けます。
           </p>
           <p class="small-note">
-            英語が少し間違っていても、意味を推測して会話を続けてくれます。
+            例：<br />
+            ・Where are you from?<br />
+            ・Can we practice a self-introduction?<br />
+            ・今日の出来事を英語で話してみてね。
           </p>
         </div>
       </div>
 
+      <!-- 会話ログ -->
       <div class="card chat-card">
         <div id="talk-log" class="chat-log"></div>
       </div>
 
+      <!-- 認識中テキスト -->
       <div class="card">
         <p class="shadow-label">認識中の英語</p>
         <p id="talk-heard" class="recognized-text">
-          「マイクで話す」を押してから話してみてください。
+          「🎙 マイクで話す」を押してから、英語で話してみてください。
         </p>
         <p id="talk-status" class="small-note">
           ステータス：待機中
         </p>
       </div>
 
+      <!-- 操作ボタン -->
       <div class="card shadow-controls">
         <button id="btn-talk-start" class="btn primary">
           🎙 マイクで話す
         </button>
         <button id="btn-talk-stop" class="btn secondary">
-          ■ 停止してキャラに送る
+          ■ 停止して Onigiri-kun に送る
         </button>
-        <button id="btn-talk-back" class="btn text-btn">ホームに戻る</button>
+        <button id="btn-talk-back" class="btn text-btn">
+          ホームに戻る
+        </button>
       </div>
     </section>
-  </div>
 
   <!-- ====================== 効果音 ====================== -->
   <audio id="se-correct" src="sounds/correct.wav"></audio>
