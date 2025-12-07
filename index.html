@@ -13,7 +13,7 @@
     <!-- ====================== ホーム画面 ====================== -->
     <section id="screen-home" class="screen active">
       <h1 class="app-title">TOEIC600ブートキャンプ</h1>
-      <p class="app-sub">単語・文法・発音・AI会話で600点突破を目指そう</p>
+      <p class="app-sub">単語・文法・発音・AIチャットで600点突破を目指そう</p>
 
       <div class="card">
         <p>今日のメニュー：</p>
@@ -46,7 +46,7 @@
       </div>
 
       <div class="card">
-        <p id="quiz-direction" class="direction">英単語の意味を選んでください。</p>
+        <p class="direction">英単語の意味を選んでください。</p>
         <p id="quiz-question" class="question-word">word</p>
 
         <div id="choices" class="choices"></div>
@@ -136,7 +136,7 @@
     </section>
 
 
-    <!-- ====================== AI英語チャット（テキスト） ====================== -->
+    <!-- ====================== AI英語チャット ====================== -->
     <section id="screen-chat" class="screen">
       <div class="top-bar">
         <span>AI英語チャット</span>
@@ -175,8 +175,8 @@
         </div>
         <div class="talk-intro">
           <p class="direction">
-            マイクをオンにして英語で話すと、Onigiri-kun が返事をしてくれます。<br>
-            少し文法が間違っていても、意味をくみ取って会話を続けます。
+            マイクをオンにして英語で話すと、Onigiri-kun が英語で返事をしてくれます。<br>
+            文法が少し間違っていても、意味をくみ取って会話を続ける「英会話練習専用モード」です。
           </p>
           <p class="small-note">
             例：Where are you from? / Can we practice self-introduction? など。
@@ -211,7 +211,6 @@
   <audio id="se-wrong"   src="sounds/wrong.wav"></audio>
   <audio id="se-click"   src="sounds/click.wav"></audio>
 
-  <!-- ====================== JS ====================== -->
   <script src="script.js"></script>
 </body>
 </html>
