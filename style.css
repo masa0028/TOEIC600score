@@ -89,10 +89,6 @@ body {
   color: #17375c;
   box-shadow: none;
 }
-.btn.danger {
-  background: #e74c3c;
-  color: #fff;
-}
 
 /* 進捗バー */
 .progress-wrap {
@@ -192,7 +188,7 @@ body {
   font-size: 14px;
 }
 
-/* シャドー/発音用 */
+/* 発音・認識表示 */
 .shadow-label {
   font-size: 13px;
   font-weight: 600;
@@ -231,7 +227,6 @@ body {
 .chat-bubble.user {
   background: #3498db;
   color: #fff;
-  align-self: flex-end;
 }
 .chat-bubble.bot {
   background: #2c3e50;
