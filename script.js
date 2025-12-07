@@ -770,3 +770,210 @@ window.addEventListener("DOMContentLoaded", () => {
       showScreen("home");
     };
 });
+
+// ==================== AI英会話（Onitama：音声会話） ====================
+
+// すでに発音トレーニングなどで SpeechRecognition を使っている場合は、
+// そのインスタンスを使い回してもOKです。
+// ここでは独立させるために talkRecognition を用意します。
+
+let talkRecognition = null;
+let talkListening = false;
+let talkBuffer = "";
+
+// 既に他の場所で使っているなら、それをそのまま使ってもOK
+const talkLog = document.getElementById("talk-log");
+const talkHeard = document.getElementById("talk-heard");
+const talkStatus = document.getElementById("talk-status");
+
+// すでにどこかにあるはず：Cloudflare Worker 経由で OpenAI を呼ぶ関数
+// const API_ENDPOINT = "https://～～～";
+// async function callWorker(message) { ... }
+// playSE(seClick) なども既にありますよね。それをそのまま使います。
+
+function addTalkMessage(text, isUser) {
+  if (!talkLog) return;
+  const div = document.createElement("div");
+  div.className = "chat-bubble " + (isUser ? "user" : "bot");
+  div.textContent = text;
+  talkLog.appendChild(div);
+  talkLog.scrollTop = talkLog.scrollHeight;
+}
+
+// キャラクター用プロンプトを作って Worker に投げる
+async function callCharacterAPI(userUtterance) {
+  const prompt =
+    "【キャラクター設定】\n" +
+    "あなたは「Onigiri-kun」という、やさしくてフレンドリーなおにぎりキャラクターです。" +
+    "日本語メイン＋やさしい英語で会話してください。\n" +
+    "相手の英語が少し間違っていても、意味を推測して会話を続けます。\n" +
+    "必要であれば、より自然な英語表現を1つだけ提案してください。\n\n" +
+    "【ユーザーの発話（音声認識結果）】\n" +
+    userUtterance +
+    "\n\nOnigiri-kunとして返事をしてください。";
+
+  return await callWorker(prompt);
+}
+
+// 音声認識の初期化
+function initTalkRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    if (talkStatus) {
+      talkStatus.textContent =
+        "ステータス：このブラウザでは音声認識が使えません（Chrome 推奨）";
+    }
+    return;
+  }
+
+  talkRecognition = new SR();
+  talkRecognition.lang = "en-US";
+  talkRecognition.interimResults = true;
+  talkRecognition.continuous = true;
+
+  talkRecognition.onresult = event => {
+    let text = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      text += event.results[i][0].transcript;
+    }
+    talkBuffer = text.trim();
+    if (talkHeard) {
+      talkHeard.textContent =
+        talkBuffer || "（音声を認識しています…）";
+    }
+  };
+
+  talkRecognition.onerror = e => {
+    console.error("talkRecognition error", e);
+    if (talkHeard) {
+      talkHeard.textContent =
+        "⚠ 音声認識中にエラーが発生しました: " + e.error;
+    }
+  };
+
+  // 停止ボタンを押していない限り、自動で再開させる
+  talkRecognition.onend = () => {
+    if (talkListening && talkRecognition) {
+      try {
+        talkRecognition.start();
+      } catch (e) {
+        console.log("restart talk error", e);
+      }
+    }
+  };
+}
+
+// マイクスタート
+function startVoiceTalk() {
+  playSE(seClick);
+  if (!talkRecognition) {
+    alert("このブラウザでは音声認識が使えません。Chrome をお試しください。");
+    return;
+  }
+  talkListening = true;
+  talkBuffer = "";
+  if (talkHeard) {
+    talkHeard.textContent = "（話し始めてください）";
+  }
+  if (talkStatus) {
+    talkStatus.textContent = "ステータス：録音中（停止ボタンで送信）";
+  }
+  try {
+    talkRecognition.start();
+  } catch (e) {
+    console.log("startVoiceTalk error", e);
+  }
+}
+
+// マイク停止 → キャラに送信
+async function stopVoiceTalk() {
+  playSE(seClick);
+  talkListening = false;
+  try {
+    talkRecognition.stop();
+  } catch (e) {
+    console.log("stopVoiceTalk error", e);
+  }
+
+  const text = (talkBuffer || "").trim();
+  if (!text) {
+    if (talkStatus) {
+      talkStatus.textContent =
+        "ステータス：音声が認識されませんでした。もう一度お試しください。";
+    }
+    return;
+  }
+
+  if (talkStatus) talkStatus.textContent = "ステータス：Onigiri-kun が考え中…";
+
+  // 画面にユーザー発話を出す
+  addTalkMessage(text, true);
+
+  // 「考え中…」バブル
+  addTalkMessage("Onigiri-kun が考え中…", false);
+  const thinkingBubble = talkLog.lastChild;
+
+  try {
+    const reply = await callCharacterAPI(text);
+    thinkingBubble.textContent = reply;
+    if (talkStatus) talkStatus.textContent = "ステータス：会話待機中";
+
+    // ブラウザ読み上げ（日本語メイン想定）
+    if ("speechSynthesis" in window) {
+      const u = new SpeechSynthesisUtterance(reply);
+      u.lang = "ja-JP";
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    }
+  } catch (e) {
+    console.error(e);
+    thinkingBubble.textContent =
+      "⚠ JavaScript側でエラーが発生しました。\n" + e.toString();
+    if (talkStatus) talkStatus.textContent = "ステータス：エラーが発生しました";
+  }
+}
+
+// DOMContentLoaded でボタンに紐付け
+window.addEventListener("DOMContentLoaded", () => {
+  initTalkRecognition();
+
+  const btnTalkStart = document.getElementById("btn-talk-start");
+  const btnTalkStop = document.getElementById("btn-talk-stop");
+  const btnTalkBack = document.getElementById("btn-talk-back");
+  const btnTalk = document.getElementById("btn-talk"); // ホーム画面のボタン
+
+  if (btnTalkStart) btnTalkStart.onclick = startVoiceTalk;
+  if (btnTalkStop) btnTalkStop.onclick = stopVoiceTalk;
+
+  if (btnTalkBack)
+    btnTalkBack.onclick = () => {
+      playSE(seClick);
+      // 会話画面からホームへ戻る
+      const screenHome = document.getElementById("screen-home");
+      const screenTalk = document.getElementById("screen-talk");
+      if (screenHome && screenTalk) {
+        screenTalk.classList.remove("active");
+        screenHome.classList.add("active");
+      }
+    };
+
+  if (btnTalk)
+    btnTalk.onclick = () => {
+      playSE(seClick);
+      // ホームから AI英会話画面へ
+      const screenHome = document.getElementById("screen-home");
+      const screenTalk = document.getElementById("screen-talk");
+      if (screenHome && screenTalk) {
+        screenHome.classList.remove("active");
+        screenTalk.classList.add("active");
+      }
+
+      // 最初の挨拶がまだ無ければ出す
+      if (talkLog && talkLog.children.length === 0) {
+        addTalkMessage(
+          "こんにちは、Onigiri-kun だよ🍙 まずは自己紹介から話してみようか？英語でも日本語でもOKだよ。",
+          false
+        );
+      }
+    };
+});
