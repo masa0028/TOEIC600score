@@ -6,7 +6,6 @@ function $(id) {
 let screens = {};
 let seCorrect, seNext, seWrong, seClick;
 
-// 青空UIで使う画面切り替え
 function show(name) {
   Object.values(screens).forEach((s) => s && s.classList.remove("active"));
   if (screens[name]) screens[name].classList.add("active");
@@ -31,7 +30,7 @@ function playSE(audioEl) {
   }
 }
 
-// ==================== データ：単語・文法 ====================
+// ==================== データ ====================
 const day1Words = [
   { word: "increase", meaning_jp: "増加する" },
   { word: "decrease", meaning_jp: "減少する" },
@@ -122,7 +121,7 @@ const grammarQuestions = [
 let quizOrder = [];
 let quizIndex = 0;
 let quizCorrect = 0;
-let quizWrongIndices = []; // day1Words の index
+let quizWrongIndices = [];
 let quizReviewMode = false;
 
 // ==================== 文法クイズ状態 ====================
@@ -141,11 +140,10 @@ let talkRecognition = null;
 let talkListening = false;
 let talkBuffer = "";
 
-// ==================== AIエンドポイント ====================
+// ==================== API ====================
 const API_ENDPOINT =
   "https://winter-scene-288dtoeic-chat-gpt.masayaking.workers.dev/";
 
-// Cloudflare Worker 経由で OpenAI を呼ぶ共通関数
 async function callWorker(message) {
   const res = await fetch(API_ENDPOINT, {
     method: "POST",
@@ -174,7 +172,7 @@ function startWordQuiz(review = false) {
       return;
     }
     indices = shuffle(quizWrongIndices);
-    quizWrongIndices = []; // 再度間違えたものだけ残す
+    quizWrongIndices = [];
     $("quiz-mode-label").textContent = "復習モード（単語）";
   } else {
     indices = shuffle([...day1Words.keys()]);
@@ -205,17 +203,11 @@ function renderWordQuestion() {
   $("feedback").textContent = "";
   $("btn-next").style.display = "none";
 
-  const others = shuffle(
-    day1Words.filter((w, i) => i !== qIndex)
-  ).slice(0, 3);
-  const options = shuffle([
-    q.meaning_jp,
-    ...others.map((o) => o.meaning_jp),
-  ]);
+  const others = shuffle(day1Words.filter((w, i) => i !== qIndex)).slice(0, 3);
+  const options = shuffle([q.meaning_jp, ...others.map((o) => o.meaning_jp)]);
 
   const box = $("choices");
   box.innerHTML = "";
-
   options.forEach((opt) => {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
@@ -242,9 +234,7 @@ function handleWordAnswer(btn, chosen, qIndex) {
   } else {
     btn.classList.add("wrong");
     $("feedback").textContent = `不正解… 正解: ${correctAns}`;
-    if (!quizWrongIndices.includes(qIndex)) {
-      quizWrongIndices.push(qIndex);
-    }
+    if (!quizWrongIndices.includes(qIndex)) quizWrongIndices.push(qIndex);
     playSE(seWrong);
   }
 
@@ -330,7 +320,6 @@ function renderGrammarQuestion() {
 
   const box = $("grammar-choices");
   box.innerHTML = "";
-
   shuffle(q.options).forEach((opt) => {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
@@ -358,9 +347,7 @@ function handleGrammarAnswer(btn, chosen, qIndex) {
   } else {
     btn.classList.add("wrong");
     $("grammar-feedback").textContent = `❌ 不正解… 正解: ${q.correct} ／ ${q.explanation}`;
-    if (!grammarWrongIndices.includes(qIndex)) {
-      grammarWrongIndices.push(qIndex);
-    }
+    if (!grammarWrongIndices.includes(qIndex)) grammarWrongIndices.push(qIndex);
     playSE(seWrong);
   }
 
@@ -476,7 +463,7 @@ async function stopPron() {
   }
 }
 
-// ==================== AI英語チャット（テキスト） ====================
+// ==================== AI英語チャット ====================
 function addChatBubble(logEl, text, isUser) {
   const div = document.createElement("div");
   div.className = "chat-bubble " + (isUser ? "user" : "bot");
@@ -594,33 +581,35 @@ async function stopVoiceTalk() {
   $("talk-status").textContent = "ステータス：Onigiri-kun が考え中…";
 
   addTalkMessage(text, true);
-  addTalkMessage("Onigiri-kun が考え中…", false);
+  addTalkMessage("Onigiri-kun is thinking…", false);
   const log = $("talk-log");
   const thinking = log.lastChild;
 
+  // ★ 英会話専用: 英語のみで返事。文法分析・日本語解説なし。
   const prompt =
-    "【キャラクター設定】\n" +
-    "あなたは『Onigiri-kun』という、優しくフレンドリーなおにぎりキャラクターです。" +
-    "日本語メイン＋やさしい英語で、英会話の相手をしてください。" +
-    "相手の英語が少し間違っていても意味を推測して会話を続け、" +
-    "必要であれば自然な英語表現を1つだけ提案してください。\n\n" +
-    "【学習者の発話（音声認識結果）】\n" +
+    "You are 'Onigiri-kun', a friendly rice-ball character and English speaking partner.\n" +
+    "Have a casual conversation in English only with a Japanese learner of English.\n" +
+    "Their sentence may have some mistakes, but you should understand the meaning and reply naturally.\n" +
+    "Use simple, natural English (around CEFR B1 level). Do NOT explain grammar, do NOT switch to Japanese.\n" +
+    "Keep the conversation going by asking a short follow-up question at the end.\n\n" +
+    "User said:\n" +
     text +
-    "\n\nOnigiri-kun として返事をしてください。";
+    "\n\nReply as Onigiri-kun in English only:";
 
   try {
     const reply = await callWorker(prompt);
     thinking.textContent = reply;
     $("talk-status").textContent = "ステータス：会話待機中";
 
+    // 英語音声で読み上げ（不要ならこのブロックごと消してOK）
     if ("speechSynthesis" in window) {
       const u = new SpeechSynthesisUtterance(reply);
-      u.lang = "ja-JP";
+      u.lang = "en-US";
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(u);
     }
   } catch (e) {
-    thinking.textContent = "エラーが発生しました：" + e.toString();
+    thinking.textContent = "Error: " + e.toString();
     $("talk-status").textContent = "ステータス：エラーが発生しました";
   }
 }
@@ -718,7 +707,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const log = $("talk-log");
     if (log && log.children.length === 0) {
       addTalkMessage(
-        "こんにちは、Onigiri-kun だよ🍙 まずは自己紹介から話してみようか？英語でも日本語でもOKだよ。",
+        "Hi, I'm Onigiri-kun! 🍙 Let's practice English together. You can start by telling me your name or asking me a question.",
         false
       );
     }
