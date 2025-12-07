@@ -1,13 +1,11 @@
 // ==================== 共通ユーティリティ ====================
-function $(id) {
-  return document.getElementById(id);
-}
+function $(id) { return document.getElementById(id); }
 
 let screens = {};
 let seCorrect, seNext, seWrong, seClick;
 
 function show(name) {
-  Object.values(screens).forEach((s) => s && s.classList.remove("active"));
+  Object.values(screens).forEach(s => s && s.classList.remove("active"));
   if (screens[name]) screens[name].classList.add("active");
 }
 
@@ -51,7 +49,7 @@ const day1Words = [
   { word: "on time", meaning_jp: "時間通りに" },
   { word: "in advance", meaning_jp: "事前に" },
   { word: "be in charge of", meaning_jp: "担当している" },
-  { word: "according to", meaning_jp: "〜によると" },
+  { word: "according to", meaning_jp: "〜によると" }
 ];
 
 const grammarQuestions = [
@@ -59,62 +57,62 @@ const grammarQuestions = [
     question: "She (_____) the report yesterday.",
     options: ["submits", "submitted", "submitting", "submit"],
     correct: "submitted",
-    explanation: "yesterday があるので過去形 submitted が正解。",
+    explanation: "yesterday があるので過去形 submitted が正解。"
   },
   {
     question: "The meeting has been (_____) to next Monday.",
     options: ["postponed", "postpone", "postponing", "postpones"],
     correct: "postponed",
-    explanation: "has been + 過去分詞 なので postponed。",
+    explanation: "has been + 過去分詞 なので postponed."
   },
   {
     question: "Please (_____) me if you have any questions.",
     options: ["contact", "contacts", "contacting", "to contact"],
     correct: "contact",
-    explanation: "命令文なので動詞の原形 contact が入る。",
+    explanation: "命令文なので動詞の原形 contact が入る。"
   },
   {
     question: "We are looking forward to (_____) you.",
     options: ["see", "seeing", "seen", "to see"],
     correct: "seeing",
-    explanation: "look forward to の後ろは動名詞 seeing。",
+    explanation: "look forward to の後ろは動名詞 seeing。"
   },
   {
     question: "The new system is expected (_____) costs.",
     options: ["reduce", "to reduce", "reducing", "reduced"],
     correct: "to reduce",
-    explanation: "is expected to + 動詞の原形 → to reduce。",
+    explanation: "is expected to + 動詞の原形 → to reduce。"
   },
   {
     question: "He is responsible (_____) managing the team.",
     options: ["for", "to", "at", "on"],
     correct: "for",
-    explanation: "responsible for ～ で「～に責任がある」。",
+    explanation: "responsible for ～ で「～に責任がある」。"
   },
   {
     question: "The documents must be (_____) by Friday.",
     options: ["submit", "submitting", "submitted", "to submit"],
     correct: "submitted",
-    explanation: "must be + 過去分詞 → 受動態 submitted。",
+    explanation: "must be + 過去分詞 → 受動態 submitted。"
   },
   {
     question: "Our office is closed (_____) weekends.",
     options: ["in", "on", "at", "for"],
     correct: "on",
-    explanation: "曜日・週末には on を使う。",
+    explanation: "曜日・週末には on を使う。"
   },
   {
     question: "She has worked here (_____) three years.",
     options: ["for", "since", "during", "from"],
     correct: "for",
-    explanation: "for + 期間（three years）で「〜の間」。",
+    explanation: "for + 期間（three years）で「〜の間」。"
   },
   {
     question: "The manager asked him (_____) the report.",
     options: ["rewrite", "rewriting", "to rewrite", "rewritten"],
     correct: "to rewrite",
-    explanation: "ask 人 to 動詞 で「〜するよう頼む」。",
-  },
+    explanation: "ask 人 to 動詞 で「〜するよう頼む」。"
+  }
 ];
 
 // ==================== 単語クイズ状態 ====================
@@ -148,7 +146,7 @@ async function callWorker(message) {
   const res = await fetch(API_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message })
   });
   const data = await res.json();
   if (data.reply) return data.reply;
@@ -204,11 +202,11 @@ function renderWordQuestion() {
   $("btn-next").style.display = "none";
 
   const others = shuffle(day1Words.filter((w, i) => i !== qIndex)).slice(0, 3);
-  const options = shuffle([q.meaning_jp, ...others.map((o) => o.meaning_jp)]);
+  const options = shuffle([q.meaning_jp, ...others.map(o => o.meaning_jp)]);
 
   const box = $("choices");
   box.innerHTML = "";
-  options.forEach((opt) => {
+  options.forEach(opt => {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
     btn.textContent = opt;
@@ -224,7 +222,7 @@ function handleWordAnswer(btn, chosen, qIndex) {
   const q = day1Words[qIndex];
   const correctAns = q.meaning_jp;
 
-  Array.from($("choices").children).forEach((b) => (b.disabled = true));
+  Array.from($("choices").children).forEach(b => b.disabled = true);
 
   if (chosen === correctAns) {
     btn.classList.add("correct");
@@ -244,13 +242,13 @@ function handleWordAnswer(btn, chosen, qIndex) {
 
 function updateWordProgress(done) {
   const total = quizOrder.length || day1Words.length;
-  $("progress-inner").style.width = (done / total) * 100 + "%";
+  $("progress-inner").style.width = (done / total * 100) + "%";
   $("progress-text").textContent = `${done} / ${total}`;
 }
 
 function showWordResult() {
   const total = quizOrder.length;
-  const rate = total ? Math.round((quizCorrect / total) * 100) : 0;
+  const rate = total ? Math.round(quizCorrect / total * 100) : 0;
 
   $("result-score").textContent = `正解数 ${quizCorrect} / ${total}`;
   $("result-rate").textContent = `正答率 ${rate}%`;
@@ -259,7 +257,7 @@ function showWordResult() {
 
   const list = $("mistake-list");
   list.innerHTML = "";
-  quizWrongIndices.forEach((idx) => {
+  quizWrongIndices.forEach(idx => {
     const w = day1Words[idx];
     const li = document.createElement("li");
     li.textContent = `${w.word} - ${w.meaning_jp}`;
@@ -311,16 +309,14 @@ function renderGrammarQuestion() {
   const q = grammarQuestions[qIndex];
 
   $("grammar-question").textContent = q.question;
-  $("grammar-counter").textContent = `${grammarIndex + 1} / ${
-    grammarOrder.length
-  }`;
+  $("grammar-counter").textContent = `${grammarIndex + 1} / ${grammarOrder.length}`;
   $("grammar-feedback").textContent = "";
   $("grammar-progress").textContent = `正解数 ${grammarCorrect} / ${grammarIndex}`;
   $("btn-grammar-next").style.display = "none";
 
   const box = $("grammar-choices");
   box.innerHTML = "";
-  shuffle(q.options).forEach((opt) => {
+  shuffle(q.options).forEach(opt => {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
     btn.textContent = opt;
@@ -335,9 +331,7 @@ function renderGrammarQuestion() {
 function handleGrammarAnswer(btn, chosen, qIndex) {
   const q = grammarQuestions[qIndex];
 
-  Array.from($("grammar-choices").children).forEach(
-    (b) => (b.disabled = true)
-  );
+  Array.from($("grammar-choices").children).forEach(b => b.disabled = true);
 
   if (chosen === q.correct) {
     btn.classList.add("correct");
@@ -346,20 +340,20 @@ function handleGrammarAnswer(btn, chosen, qIndex) {
     playSE(seCorrect);
   } else {
     btn.classList.add("wrong");
-    $("grammar-feedback").textContent = `❌ 不正解… 正解: ${q.correct} ／ ${q.explanation}`;
+    $("grammar-feedback").textContent =
+      `❌ 不正解… 正解: ${q.correct} ／ ${q.explanation}`;
     if (!grammarWrongIndices.includes(qIndex)) grammarWrongIndices.push(qIndex);
     playSE(seWrong);
   }
 
-  $("grammar-progress").textContent = `正解数 ${grammarCorrect} / ${
-    grammarIndex + 1
-  }`;
+  $("grammar-progress").textContent =
+    `正解数 ${grammarCorrect} / ${grammarIndex + 1}`;
   $("btn-grammar-next").style.display = "block";
 }
 
 function showGrammarResult() {
   const total = grammarOrder.length;
-  const rate = total ? Math.round((grammarCorrect / total) * 100) : 0;
+  const rate = total ? Math.round(grammarCorrect / total * 100) : 0;
   let msg = `文法クイズ結果：${grammarCorrect} / ${total}（${rate}%）`;
 
   if (rate >= 90) msg += " すばらしい！Part5 もかなり強いです。";
@@ -451,8 +445,7 @@ async function stopPron() {
     "あなたは TOEIC 学習者向けの英語コーチです。次の英文について、" +
     "1) 文法が自然かどうか、2) よりよい表現があれば1つ提案してください。" +
     "解説は日本語で、最後に模範英作文を1つだけ示してください。\n\n" +
-    "【学習者の英文】\n" +
-    text;
+    "【学習者の英文】\n" + text;
 
   try {
     const reply = await callWorker(prompt);
@@ -585,25 +578,40 @@ async function stopVoiceTalk() {
   const log = $("talk-log");
   const thinking = log.lastChild;
 
-  // ★ 英会話専用: 英語のみで返事。文法分析・日本語解説なし。
+  // ★ 英会話専用：英語で返事＋日本語訳を1行、音声は英語だけ
   const prompt =
     "You are 'Onigiri-kun', a friendly rice-ball character and English speaking partner.\n" +
-    "Have a casual conversation in English only with a Japanese learner of English.\n" +
+    "Have a casual conversation in ENGLISH with a Japanese learner of English.\n" +
     "Their sentence may have some mistakes, but you should understand the meaning and reply naturally.\n" +
-    "Use simple, natural English (around CEFR B1 level). Do NOT explain grammar, do NOT switch to Japanese.\n" +
-    "Keep the conversation going by asking a short follow-up question at the end.\n\n" +
-    "User said:\n" +
-    text +
-    "\n\nReply as Onigiri-kun in English only:";
+    "Use simple, natural English (around CEFR B1 level).\n" +
+    "IMPORTANT:\n" +
+    "- Do NOT explain grammar.\n" +
+    "- Do NOT speak Japanese in the English sentence.\n" +
+    "- After your English reply, provide one short Japanese translation on the next line.\n" +
+    "- Format STRICTLY as:\n" +
+    "EN: (your English reply)\n" +
+    "JP: (Japanese translation)\n\n" +
+    "User said:\n" + text + "\n\nNow reply in the required format:";
 
   try {
     const reply = await callWorker(prompt);
-    thinking.textContent = reply;
+
+    // 期待フォーマットから英語部分と日本語部分を切り出す
+    let en = reply;
+    let jp = "";
+    const jpIndex = reply.indexOf("JP:");
+    if (jpIndex !== -1) {
+      en = reply.slice(0, jpIndex).replace(/^EN:\s*/i, "").trim();
+      jp = reply.slice(jpIndex).replace(/^JP:\s*/i, "").trim();
+    }
+
+    const finalText = jp ? `EN: ${en}\nJP: ${jp}` : reply;
+    thinking.textContent = finalText;
     $("talk-status").textContent = "ステータス：会話待機中";
 
-    // 英語音声で読み上げ（不要ならこのブロックごと消してOK）
+    // 音声は英語のみ読み上げ
     if ("speechSynthesis" in window) {
-      const u = new SpeechSynthesisUtterance(reply);
+      const u = new SpeechSynthesisUtterance(en || reply);
       u.lang = "en-US";
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(u);
@@ -623,60 +631,37 @@ window.addEventListener("DOMContentLoaded", () => {
     grammar: $("screen-grammar"),
     pronunciation: $("screen-pronunciation"),
     chat: $("screen-chat"),
-    talk: $("screen-talk"),
+    talk: $("screen-talk")
   };
 
   seCorrect = $("se-correct");
-  seNext = $("se-next");
-  seWrong = $("se-wrong");
-  seClick = $("se-click");
+  seNext    = $("se-next");
+  seWrong   = $("se-wrong");
+  seClick   = $("se-click");
 
   initPronRecognition();
   initTalkRecognition();
 
   // 単語クイズ
-  $("btn-start").onclick = () => startWordQuiz(false);
-  $("btn-review").onclick = () => startWordQuiz(true);
-  $("btn-next").onclick = () => {
-    playSE(seNext);
-    quizIndex++;
-    renderWordQuestion();
-  };
-  $("btn-quit").onclick = () => {
-    playSE(seClick);
-    show("home");
-  };
-  $("btn-again").onclick = () => startWordQuiz(false);
-  $("btn-go-review").onclick = () => startWordQuiz(true);
-  $("btn-back-home").onclick = () => {
-    playSE(seClick);
-    show("home");
-  };
+  $("btn-start").onclick      = () => startWordQuiz(false);
+  $("btn-review").onclick     = () => startWordQuiz(true);
+  $("btn-next").onclick       = () => { playSE(seNext); quizIndex++; renderWordQuestion(); };
+  $("btn-quit").onclick       = () => { playSE(seClick); show("home"); };
+  $("btn-again").onclick      = () => startWordQuiz(false);
+  $("btn-go-review").onclick  = () => startWordQuiz(true);
+  $("btn-back-home").onclick  = () => { playSE(seClick); show("home"); };
 
   // 文法
-  $("btn-grammar").onclick = () => startGrammarQuiz(false);
+  $("btn-grammar").onclick        = () => startGrammarQuiz(false);
   $("btn-grammar-review").onclick = () => startGrammarQuiz(true);
-  $("btn-grammar-next").onclick = () => {
-    playSE(seNext);
-    grammarIndex++;
-    renderGrammarQuestion();
-  };
-  $("btn-grammar-back").onclick = () => {
-    playSE(seClick);
-    show("home");
-  };
+  $("btn-grammar-next").onclick   = () => { playSE(seNext); grammarIndex++; renderGrammarQuestion(); };
+  $("btn-grammar-back").onclick   = () => { playSE(seClick); show("home"); };
 
   // 発音
-  $("btn-pronunciation").onclick = () => {
-    playSE(seClick);
-    show("pronunciation");
-  };
-  $("btn-pron-start").onclick = startPron;
-  $("btn-pron-stop").onclick = stopPron;
-  $("btn-pron-back").onclick = () => {
-    playSE(seClick);
-    show("home");
-  };
+  $("btn-pronunciation").onclick = () => { playSE(seClick); show("pronunciation"); };
+  $("btn-pron-start").onclick    = startPron;
+  $("btn-pron-stop").onclick     = stopPron;
+  $("btn-pron-back").onclick     = () => { playSE(seClick); show("home"); };
 
   // AIチャット
   $("btn-chat").onclick = () => {
@@ -684,15 +669,10 @@ window.addEventListener("DOMContentLoaded", () => {
     $("chat-log").innerHTML = "";
     show("chat");
   };
-  $("btn-chat-send").onclick = () => handleChatSend();
-  $("btn-chat-example").onclick = () =>
-    handleChatSend("今日の単語で例文を作って");
-  $("btn-chat-sales").onclick = () =>
-    handleChatSend("営業のシーンで使える表現を教えて");
-  $("btn-chat-back").onclick = () => {
-    playSE(seClick);
-    show("home");
-  };
+  $("btn-chat-send").onclick     = () => handleChatSend();
+  $("btn-chat-example").onclick  = () => handleChatSend("今日の単語で例文を作って");
+  $("btn-chat-sales").onclick    = () => handleChatSend("営業のシーンで使える表現を教えて");
+  $("btn-chat-back").onclick     = () => { playSE(seClick); show("home"); };
   $("chat-input").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -707,17 +687,15 @@ window.addEventListener("DOMContentLoaded", () => {
     const log = $("talk-log");
     if (log && log.children.length === 0) {
       addTalkMessage(
-        "Hi, I'm Onigiri-kun! 🍙 Let's practice English together. You can start by telling me your name or asking me a question.",
+        "EN: Hi, I'm Onigiri-kun! 🍙 Let's practice English together. You can start by telling me your name or asking me a question.\n" +
+        "JP: こんにちは、おにぎりくんだよ！英語で自己紹介や質問から始めてみてね。",
         false
       );
     }
   };
   $("btn-talk-start").onclick = startVoiceTalk;
-  $("btn-talk-stop").onclick = stopVoiceTalk;
-  $("btn-talk-back").onclick = () => {
-    playSE(seClick);
-    show("home");
-  };
+  $("btn-talk-stop").onclick  = stopVoiceTalk;
+  $("btn-talk-back").onclick  = () => { playSE(seClick); show("home"); };
 
   // 初期進捗
   updateWordProgress(0);
