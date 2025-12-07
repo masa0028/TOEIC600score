@@ -1,393 +1,292 @@
-/* -------------- 全体レイアウト -------------- */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
+/* 画面全体：青空グラデーション */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
-  color: #0b1b33;
-  background: radial-gradient(circle at top, #f7fbff 0%, #d2e8ff 40%, #8dc6ff 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI",
+    sans-serif;
+  background: radial-gradient(circle at top, #ffffff 0%, #cde9ff 40%, #74b9ff 100%);
+  color: #0b2239;
+}
+
+/* 中央配置 */
+#app {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-#app {
-  width: 100%;
-  max-width: 960px;
-  padding: 32px 16px 48px;
-}
-
-/* -------------- 画面共通 -------------- */
+/* 各画面 */
 .screen {
   display: none;
+  width: min(900px, 100%);
+  padding: 32px 16px 40px;
+  box-sizing: border-box;
 }
-
 .screen.active {
   display: block;
 }
 
+/* タイトル */
 .app-title {
   text-align: center;
-  font-size: 2rem;
-  margin-bottom: 4px;
-  letter-spacing: 0.12em;
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 700;
 }
-
 .app-sub {
   text-align: center;
-  font-size: 0.9rem;
-  color: #39506b;
-  margin-bottom: 24px;
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: #4d6685;
 }
 
-/* -------------- カード -------------- */
+/* カード */
 .card {
-  background: rgba(12, 28, 57, 0.86);
-  color: #f5fbff;
+  background: rgba(8, 25, 45, 0.9);
+  color: #f5f6fa;
   border-radius: 18px;
-  padding: 16px 20px;
-  margin: 12px auto;
-  max-width: 640px;
-  box-shadow: 0 18px 40px rgba(7, 19, 40, 0.45);
-  backdrop-filter: blur(22px);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
 }
 
-.card.main-card {
-  margin-top: 12px;
-}
-
-.card-title {
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.card-text {
-  font-size: 0.95rem;
-  margin-bottom: 12px;
-}
-
-/* -------------- 進捗バー -------------- */
-.progress-wrap {
-  margin-top: 8px;
-}
-
-.progress-label {
-  font-size: 0.85rem;
-  margin-bottom: 4px;
-}
-
-.progress-bar {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  height: 8px;
-  overflow: hidden;
-}
-
-.progress-inner {
-  height: 100%;
-  width: 0%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #4fd1ff, #7c5cff);
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  font-size: 0.8rem;
-  text-align: right;
-  margin-top: 4px;
-}
-
-/* -------------- ボタン -------------- */
-.home-buttons {
-  max-width: 640px;
-  margin: 18px auto 0;
-}
-
+/* ボタン共通 */
 .btn {
   display: block;
   width: 100%;
+  max-width: 520px;
+  margin: 8px auto;
+  padding: 12px 16px;
   border-radius: 999px;
   border: none;
-  padding: 12px 18px;
-  margin: 8px 0;
-  font-size: 0.95rem;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.2s ease;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
 }
-
-.btn.primary {
-  background: linear-gradient(90deg, #2fc8ff, #7b5dff);
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(38, 118, 255, 0.35);
-}
-
-.btn.secondary {
-  background: rgba(8, 23, 58, 0.9);
-  color: #f0f6ff;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-}
-
-.btn.text-btn {
-  background: transparent;
-  color: #203a5c;
-  text-align: center;
+.btn:active {
+  transform: translateY(1px);
   box-shadow: none;
-  font-size: 0.9rem;
 }
-
 .btn:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+/* ボタン色 */
+.btn.primary {
+  background: linear-gradient(90deg, #3db5ff, #7f5dff);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(53, 152, 219, 0.4);
+}
+.btn.secondary {
+  background: rgba(8, 25, 45, 0.85);
+  color: #f5f6fa;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.btn.text-btn {
+  background: transparent;
+  color: #17375c;
   box-shadow: none;
 }
-
-.btn:not(:disabled):active {
-  transform: translateY(1px) scale(0.99);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+.btn.danger {
+  background: #e74c3c;
+  color: #fff;
 }
 
-/* -------------- トップバー -------------- */
+/* 進捗バー */
+.progress-wrap {
+  margin-top: 16px;
+}
+.progress-label {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(236, 240, 241, 0.25);
+  overflow: hidden;
+}
+.progress-inner {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  transition: width 0.3s ease;
+}
+.progress-text {
+  font-size: 12px;
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* トップバー */
 .top-bar {
-  max-width: 640px;
-  margin: 0 auto 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #17324f;
-  font-size: 0.9rem;
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: #2c3e50;
 }
 
-.chat-subtitle {
-  font-size: 0.8rem;
-  color: #48617e;
-}
-
-/* -------------- クイズ -------------- */
+/* クイズ */
 .direction {
-  font-size: 0.9rem;
-  margin-bottom: 10px;
-  color: #d7e7ff;
+  font-size: 14px;
+  margin-bottom: 8px;
 }
-
 .question-word {
-  font-size: 1.8rem;
+  font-size: 28px;
   font-weight: 700;
   text-align: center;
-  margin: 16px 0;
+  margin: 12px 0 20px;
 }
-
 .question-sentence {
-  font-size: 1rem;
-  margin: 12px 0 18px;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 12px 0 20px;
 }
-
 .choices {
   display: grid;
   gap: 8px;
+}
+.choice-btn {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+  background: #1f2b3e;
+  color: #ecf0f1;
+  transition: background 0.1s ease, transform 0.05s ease;
+}
+.choice-btn:hover {
+  background: #273753;
+}
+.choice-btn.correct {
+  background: #27ae60;
+}
+.choice-btn.wrong {
+  background: #e74c3c;
+}
+.feedback {
+  margin-top: 10px;
+  min-height: 24px;
+}
+
+/* 結果 */
+.result-title {
+  text-align: center;
+}
+.result-score {
+  font-size: 22px;
+  font-weight: 700;
+}
+.word-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+}
+
+/* シャドー/発音用 */
+.shadow-label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.recognized-text {
+  min-height: 40px;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+.small-note {
+  font-size: 12px;
+  color: #bdc3c7;
+}
+.shadow-controls {
   margin-top: 8px;
 }
 
-.choice-btn {
-  width: 100%;
-  border-radius: 12px;
-  border: none;
-  padding: 10px 12px;
-  font-size: 0.95rem;
-  background: rgba(9, 28, 66, 0.96);
-  color: #e8f0ff;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.06s ease;
-}
-
-.choice-btn:hover {
-  background: rgba(27, 64, 126, 0.96);
-}
-
-.choice-btn.correct {
-  background: #27c778;
-  color: #032212;
-}
-
-.choice-btn.wrong {
-  background: #f05b63;
-  color: #210003;
-}
-
-.feedback {
-  min-height: 1.4em;
-  margin-top: 10px;
-  font-size: 0.9rem;
-}
-
-/* -------------- 結果画面 -------------- */
-.result-title {
-  text-align: center;
-  margin-top: 4px;
-  margin-bottom: 12px;
-}
-
-.result-score {
-  font-size: 1.4rem;
-  margin-bottom: 6px;
-}
-
-.result-rate,
-.result-rank {
-  font-size: 1rem;
-  margin: 4px 0;
-}
-
-.result-subtitle {
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.word-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-/* -------------- 文法 -------------- */
-.grammar-progress {
-  font-size: 0.85rem;
-  margin-top: 6px;
-}
-
-/* -------------- 発音＆認識されたテキスト -------------- */
-.shadow-label {
-  font-size: 0.85rem;
-  color: #c3d8ff;
-  margin-bottom: 4px;
-}
-
-.recognized-text {
-  min-height: 2.8em;
-  white-space: pre-wrap;
-  font-size: 0.95rem;
-}
-
-.small-note {
-  font-size: 0.8rem;
-  color: #b5c6e3;
-}
-
-/* -------------- チャット共通 -------------- */
+/* チャット共通 */
 .chat-card {
-  padding: 10px 12px;
-}
-
-.chat-log {
   max-height: 320px;
   overflow-y: auto;
-  padding-right: 6px;
 }
-
+.chat-log {
+  max-height: 280px;
+  overflow-y: auto;
+}
 .chat-bubble {
-  max-width: 90%;
-  padding: 8px 12px;
-  border-radius: 14px;
-  margin: 6px 0;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  display: inline-block;
+  padding: 8px 10px;
+  border-radius: 12px;
+  margin: 4px 0;
+  font-size: 14px;
+  white-space: pre-wrap;
 }
-
 .chat-bubble.user {
-  margin-left: auto;
-  background: #4fd1ff;
-  color: #062033;
+  background: #3498db;
+  color: #fff;
+  align-self: flex-end;
 }
-
 .chat-bubble.bot {
-  margin-right: auto;
-  background: rgba(10, 28, 64, 0.95);
-  color: #eaf4ff;
+  background: #2c3e50;
+  color: #ecf0f1;
 }
-
-.chat-input-row {
-  max-width: 640px;
-  margin: 10px auto 0;
-  display: flex;
-  gap: 8px;
-}
-
-.chat-input {
-  flex: 1;
-  border-radius: 999px;
-  border: none;
-  padding: 10px 14px;
-  font-size: 0.95rem;
-  outline: none;
-}
-
-.chat-send-btn {
-  white-space: nowrap;
-}
-
 .chat-quick {
-  max-width: 640px;
-  margin: 6px auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
+  margin-top: 8px;
 }
-
-.chat-quick .btn {
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.chat-input {
   flex: 1;
-  font-size: 0.8rem;
-  padding: 8px 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+}
+.chat-send-btn {
+  flex: 0 0 auto;
 }
 
-/* -------------- AI英会話キャラ -------------- */
+/* AI英会話 */
 .talk-header {
   display: flex;
-  gap: 12px;
   align-items: center;
+  gap: 16px;
 }
-
 .char-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 999px;
-  background: #ffffff;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #ffffff22;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 0 0 3px #ffd56c;
 }
-
 .char-face {
-  font-size: 2.2rem;
+  font-size: 32px;
+}
+.talk-intro {
+  flex: 1;
 }
 
-/* -------------- レスポンシブ -------------- */
+/* スマホ対応 */
 @media (max-width: 600px) {
-  #app {
-    padding: 20px 10px 28px;
+  .screen {
+    padding-inline: 12px;
   }
-
   .card {
-    margin-left: 4px;
-    margin-right: 4px;
-  }
-
-  .app-title {
-    font-size: 1.6rem;
-  }
-
-  .talk-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .char-avatar {
-    margin-bottom: 4px;
+    padding-inline: 14px;
   }
 }
