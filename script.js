@@ -119,15 +119,15 @@ const grammarQuestions = [
 let quizOrder = [];
 let quizIndex = 0;
 let quizCorrect = 0;
-let quizWrongIndices = [];
 let quizReviewMode = false;
+let wordMistakes = new Set(); // ★ 復習対象（単語）の集合
 
 // ==================== 文法クイズ状態 ====================
 let grammarOrder = [];
 let grammarIndex = 0;
 let grammarCorrect = 0;
-let grammarWrongIndices = [];
 let grammarReviewMode = false;
+let grammarMistakes = new Set(); // ★ 復習対象（文法）の集合
 
 // ==================== 発音・AI会話 ====================
 let pronRecognition = null;
@@ -138,7 +138,7 @@ let talkRecognition = null;
 let talkListening = false;
 let talkBuffer = "";
 
-// ==================== API ====================
+// ==================== AIエンドポイント ====================
 const API_ENDPOINT =
   "https://winter-scene-288dtoeic-chat-gpt.masayaking.workers.dev/";
 
@@ -163,21 +163,18 @@ function startWordQuiz(review = false) {
   playSE(seClick);
   quizReviewMode = review;
 
-  let indices;
   if (review) {
-    if (quizWrongIndices.length === 0) {
+    if (wordMistakes.size === 0) {
       alert("復習する単語がありません。まず通常モードで解いてみましょう。");
       return;
     }
-    indices = shuffle(quizWrongIndices);
-    quizWrongIndices = [];
+    quizOrder = shuffle(Array.from(wordMistakes));
     $("quiz-mode-label").textContent = "復習モード（単語）";
   } else {
-    indices = shuffle([...day1Words.keys()]);
+    quizOrder = shuffle([...day1Words.keys()]);
     $("quiz-mode-label").textContent = "本番モード（単語）";
   }
 
-  quizOrder = indices;
   quizIndex = 0;
   quizCorrect = 0;
   updateWordProgress(0);
@@ -228,11 +225,15 @@ function handleWordAnswer(btn, chosen, qIndex) {
     btn.classList.add("correct");
     $("feedback").textContent = "正解！";
     quizCorrect++;
+    // ★ 復習モード中に正解したら、その単語は復習リストから削除
+    if (quizReviewMode) {
+      wordMistakes.delete(qIndex);
+    }
     playSE(seCorrect);
   } else {
     btn.classList.add("wrong");
     $("feedback").textContent = `不正解… 正解: ${correctAns}`;
-    if (!quizWrongIndices.includes(qIndex)) quizWrongIndices.push(qIndex);
+    wordMistakes.add(qIndex); // ★ 常に間違えた問題は集合に追加
     playSE(seWrong);
   }
 
@@ -255,16 +256,17 @@ function showWordResult() {
   $("result-rank").textContent =
     "ランク " + (rate >= 90 ? "S" : rate >= 75 ? "A" : rate >= 60 ? "B" : "C");
 
+  // ★ まだ復習対象に残っている単語を表示
   const list = $("mistake-list");
   list.innerHTML = "";
-  quizWrongIndices.forEach(idx => {
+  Array.from(wordMistakes).forEach(idx => {
     const w = day1Words[idx];
     const li = document.createElement("li");
     li.textContent = `${w.word} - ${w.meaning_jp}`;
     list.appendChild(li);
   });
 
-  const hasReview = quizWrongIndices.length > 0;
+  const hasReview = wordMistakes.size > 0;
   $("btn-review").disabled = !hasReview;
   $("btn-go-review").disabled = !hasReview;
 
@@ -276,21 +278,18 @@ function startGrammarQuiz(review = false) {
   playSE(seClick);
   grammarReviewMode = review;
 
-  let indices;
   if (review) {
-    if (grammarWrongIndices.length === 0) {
+    if (grammarMistakes.size === 0) {
       alert("復習する文法問題がありません。まず通常モードで解いてみましょう。");
       return;
     }
-    indices = shuffle(grammarWrongIndices);
-    grammarWrongIndices = [];
+    grammarOrder = shuffle(Array.from(grammarMistakes));
     $("grammar-mode-label").textContent = "文法復習モード";
   } else {
-    indices = shuffle([...grammarQuestions.keys()]);
+    grammarOrder = shuffle([...grammarQuestions.keys()]);
     $("grammar-mode-label").textContent = "文法クイズ（例文穴埋め）";
   }
 
-  grammarOrder = indices;
   grammarIndex = 0;
   grammarCorrect = 0;
   $("grammar-feedback").textContent = "";
@@ -337,12 +336,15 @@ function handleGrammarAnswer(btn, chosen, qIndex) {
     btn.classList.add("correct");
     $("grammar-feedback").textContent = "✅ 正解！ " + q.explanation;
     grammarCorrect++;
+    if (grammarReviewMode) {
+      grammarMistakes.delete(qIndex);
+    }
     playSE(seCorrect);
   } else {
     btn.classList.add("wrong");
     $("grammar-feedback").textContent =
       `❌ 不正解… 正解: ${q.correct} ／ ${q.explanation}`;
-    if (!grammarWrongIndices.includes(qIndex)) grammarWrongIndices.push(qIndex);
+    grammarMistakes.add(qIndex);
     playSE(seWrong);
   }
 
@@ -362,7 +364,7 @@ function showGrammarResult() {
 
   $("grammar-feedback").textContent = msg;
 
-  const hasReview = grammarWrongIndices.length > 0;
+  const hasReview = grammarMistakes.size > 0;
   $("btn-grammar-review").disabled = !hasReview;
 }
 
@@ -379,12 +381,15 @@ function initPronRecognition() {
   pronRecognition.interimResults = true;
   pronRecognition.continuous = true;
 
+  // final結果を蓄積（途中で間が空いても残る）
   pronRecognition.onresult = (e) => {
-    let text = "";
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      text += e.results[i][0].transcript;
+      const result = e.results[i];
+      if (result.isFinal) {
+        pronBuffer += " " + result[0].transcript;
+      }
     }
-    pronBuffer = text.trim();
+    pronBuffer = pronBuffer.trim();
     $("pron-text").textContent =
       pronBuffer || "（音声を認識しています…）";
   };
@@ -408,7 +413,8 @@ function initPronRecognition() {
 
 function startPron() {
   playSE(seClick);
-  if (!pronRecognition) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR || !pronRecognition) {
     alert("このブラウザでは音声認識が使えません。Chrome を使ってください。");
     return;
   }
@@ -456,13 +462,29 @@ async function stopPron() {
   }
 }
 
-// ==================== AI英語チャット ====================
+// ==================== チャット共通UI ====================
 function addChatBubble(logEl, text, isUser) {
   const div = document.createElement("div");
   div.className = "chat-bubble " + (isUser ? "user" : "bot");
   div.textContent = text;
   logEl.appendChild(div);
   logEl.scrollTop = logEl.scrollHeight;
+}
+
+// ==================== AI英語チャット ====================
+function showChatIntro() {
+  const log = $("chat-log");
+  if (!log) return;
+  log.innerHTML = "";
+  const intro =
+    "こんにちは！AI英語チャットです。\n\n" +
+    "▼できること\n" +
+    "・英単語の意味／例文\n" +
+    "・英文の添削\n" +
+    "・日本語→英語の翻訳\n" +
+    "・TOEICの勉強方法の相談 など\n\n" +
+    "💡下の「クイック質問ボタン」か、入力欄に自由に質問を書いてください。";
+  addChatBubble(log, intro, false);
 }
 
 async function handleChatSend(customText) {
@@ -490,7 +512,30 @@ async function handleChatSend(customText) {
   }
 }
 
-// ==================== AI英会話（Onigiri-kun） ====================
+// ==================== AI英会話（Onigiri-kun：女性っぽい声） ====================
+let talkVoice = null;
+
+function pickTalkVoice() {
+  if (!("speechSynthesis" in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return;
+
+  // 英語の女性っぽい声を優先
+  const candidates = voices.filter(v =>
+    v.lang && v.lang.toLowerCase().startsWith("en") &&
+    /female|samantha|google uk english female|google us english/i.test(v.name)
+  );
+  talkVoice =
+    candidates[0] ||
+    voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en")) ||
+    voices[0];
+}
+
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.onvoiceschanged = pickTalkVoice;
+  pickTalkVoice();
+}
+
 function initTalkRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
@@ -505,12 +550,15 @@ function initTalkRecognition() {
   talkRecognition.interimResults = true;
   talkRecognition.continuous = true;
 
+  // final結果だけを蓄積していく（間が空いても消えないように）
   talkRecognition.onresult = (e) => {
-    let text = "";
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      text += e.results[i][0].transcript;
+      const result = e.results[i];
+      if (result.isFinal) {
+        talkBuffer += " " + result[0].transcript;
+      }
     }
-    talkBuffer = text.trim();
+    talkBuffer = talkBuffer.trim();
     $("talk-heard").textContent =
       talkBuffer || "（音声を認識しています…）";
   };
@@ -521,6 +569,7 @@ function initTalkRecognition() {
       "音声認識中にエラーが発生しました：" + e.error;
   };
 
+  // 停止ボタンを押すまで、自動で再スタート
   talkRecognition.onend = () => {
     if (talkListening && talkRecognition) {
       try {
@@ -540,7 +589,8 @@ function addTalkMessage(text, isUser) {
 
 function startVoiceTalk() {
   playSE(seClick);
-  if (!talkRecognition) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR || !talkRecognition) {
     alert("このブラウザでは音声認識が使えません。Chrome を使ってください。");
     return;
   }
@@ -578,9 +628,8 @@ async function stopVoiceTalk() {
   const log = $("talk-log");
   const thinking = log.lastChild;
 
-  // ★ 英会話専用：英語で返事＋日本語訳を1行、音声は英語だけ
   const prompt =
-    "You are 'Onigiri-kun', a friendly rice-ball character and English speaking partner.\n" +
+    "You are 'Onigiri-kun', a friendly young Japanese woman English speaking partner.\n" +
     "Have a casual conversation in ENGLISH with a Japanese learner of English.\n" +
     "Their sentence may have some mistakes, but you should understand the meaning and reply naturally.\n" +
     "Use simple, natural English (around CEFR B1 level).\n" +
@@ -596,7 +645,6 @@ async function stopVoiceTalk() {
   try {
     const reply = await callWorker(prompt);
 
-    // 期待フォーマットから英語部分と日本語部分を切り出す
     let en = reply;
     let jp = "";
     const jpIndex = reply.indexOf("JP:");
@@ -609,10 +657,10 @@ async function stopVoiceTalk() {
     thinking.textContent = finalText;
     $("talk-status").textContent = "ステータス：会話待機中";
 
-    // 音声は英語のみ読み上げ
     if ("speechSynthesis" in window) {
       const u = new SpeechSynthesisUtterance(en || reply);
       u.lang = "en-US";
+      if (talkVoice) u.voice = talkVoice;
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(u);
     }
@@ -663,11 +711,11 @@ window.addEventListener("DOMContentLoaded", () => {
   $("btn-pron-stop").onclick     = stopPron;
   $("btn-pron-back").onclick     = () => { playSE(seClick); show("home"); };
 
-  // AIチャット
+  // AI英語チャット
   $("btn-chat").onclick = () => {
     playSE(seClick);
-    $("chat-log").innerHTML = "";
     show("chat");
+    showChatIntro();
   };
   $("btn-chat-send").onclick     = () => handleChatSend();
   $("btn-chat-example").onclick  = () => handleChatSend("今日の単語で例文を作って");
@@ -687,8 +735,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const log = $("talk-log");
     if (log && log.children.length === 0) {
       addTalkMessage(
-        "EN: Hi, I'm Onigiri-kun! 🍙 Let's practice English together. You can start by telling me your name or asking me a question.\n" +
-        "JP: こんにちは、おにぎりくんだよ！英語で自己紹介や質問から始めてみてね。",
+        "EN: Hi, I'm Onigiri-kun! 🍙 I'm your English speaking partner. You can start by telling me your name or asking me a question.\n" +
+        "JP: こんにちは、おにぎりくんだよ！まずは自己紹介や質問から始めてみてね。",
         false
       );
     }
