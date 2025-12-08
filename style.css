@@ -1,4 +1,4 @@
-/* 画面全体：淡い青空背景＋中央寄せ */
+/* 画面全体：淡い青空背景＋中央寄せ（スマホでも見やすく） */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI",
@@ -18,7 +18,7 @@ body {
 .screen {
   display: none;
   width: min(900px, 100%);
-  padding: 32px 16px 40px;
+  padding: 24px 16px 32px;
   box-sizing: border-box;
 }
 .screen.active {
@@ -29,12 +29,12 @@ body {
 .app-title {
   text-align: center;
   margin: 0 0 4px;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
 }
 .app-sub {
   text-align: center;
-  margin: 0 0 24px;
+  margin: 0 0 20px;
   font-size: 13px;
   color: #4d6685;
 }
@@ -44,9 +44,9 @@ body {
   background: rgba(8, 25, 45, 0.95);
   color: #f5f6fa;
   border-radius: 18px;
-  padding: 18px 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
 }
 
 /* ボタン共通 */
@@ -76,10 +76,10 @@ body {
 .btn.primary {
   background: linear-gradient(90deg, #3db5ff, #7f5dff);
   color: #ffffff;
-  box-shadow: 0 10px 20px rgba(53, 152, 219, 0.4);
+  box-shadow: 0 8px 18px rgba(53, 152, 219, 0.45);
 }
 .btn.secondary {
-  background: rgba(8, 25, 45, 0.85);
+  background: rgba(8, 25, 45, 0.92);
   color: #f5f6fa;
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -91,7 +91,7 @@ body {
 
 /* 進捗バー */
 .progress-wrap {
-  margin-top: 16px;
+  margin-top: 14px;
 }
 .progress-label {
   font-size: 12px;
@@ -133,15 +133,15 @@ body {
   margin-bottom: 8px;
 }
 .question-word {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   text-align: center;
-  margin: 12px 0 20px;
+  margin: 10px 0 18px;
 }
 .question-sentence {
   font-size: 18px;
   font-weight: 600;
-  margin: 12px 0 20px;
+  margin: 10px 0 18px;
 }
 .choices {
   display: grid;
@@ -277,10 +277,29 @@ body {
 
 /* スマホ対応 */
 @media (max-width: 600px) {
+  #app {
+    align-items: flex-start;
+    padding-top: 8px;
+  }
   .screen {
-    padding-inline: 12px;
+    padding-inline: 10px;
+    padding-top: 18px;
+  }
+  .app-title {
+    font-size: 22px;
   }
   .card {
     padding-inline: 14px;
+    margin-bottom: 10px;
+  }
+  .btn {
+    font-size: 14px;
+    padding: 11px 14px;
+  }
+  .question-word {
+    font-size: 22px;
+  }
+  .question-sentence {
+    font-size: 16px;
   }
 }
