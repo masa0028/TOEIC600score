@@ -1,7 +1,7 @@
 /***********************************************
  * TOEIC600ブートキャンプ - script.js 完全版
  * ・単語クイズ＋復習
- * ・文法クイズ＋復習
+ * ・文法クイズ＋復習（1問でも間違えたら即復習OK）
  * ・発音トレーニング（SpeechRecognition + AIフィードバック）
  * ・AI英語チャット（テキスト）
  * ・AI英会話（女性英語ボイス / 長時間録音）
@@ -221,7 +221,7 @@ function handleWordAnswer(btn, chosen, correct, qObj) {
     wordMistakes.push(qObj);
     playSE(seWrong);
 
-    // 復習用にセット
+    // 復習用にセット（1問でも間違えたら有効）
     reviewWords = wordMistakes.slice();
     const homeReviewBtn = $("btn-review");
     const resultReviewBtn = $("btn-go-review");
@@ -271,8 +271,8 @@ function showWordResult() {
 let grammarOrder = [];
 let grammarIndex = 0;
 let grammarCorrect = 0;
-let grammarMistakeList = [];
-let grammarReviewQuestions = [];
+let grammarMistakeList = [];      // 今回のセットで間違えた問題
+let grammarReviewQuestions = [];  // 累積の復習用（★ここが重要）
 
 function startGrammarQuiz(review = false) {
   playSE(seClick);
@@ -326,16 +326,27 @@ function handleGrammarAnswer(btn, chosen, qObj) {
     $("grammar-feedback").textContent = "✅ 正解！ " + (qObj.exp || "");
     grammarCorrect++;
     playSE(seCorrect);
-    // 復習から外す
+
+    // 今回のセットでのミスリストから削除
     grammarMistakeList = grammarMistakeList.filter(q => q.q !== qObj.q);
+    // 復習用リストからも削除（復習で正解したら消える）
+    grammarReviewQuestions = grammarReviewQuestions.filter(q => q.q !== qObj.q);
   } else {
     btn.classList.add("wrong");
     $("grammar-feedback").textContent =
       `❌ 不正解… 正解: ${qObj.a} ／ ${qObj.exp || ""}`;
     playSE(seWrong);
+
+    // 今回のミスリストに追加
     if (!grammarMistakeList.some(q => q.q === qObj.q)) {
       grammarMistakeList.push(qObj);
     }
+    // ★復習用リストにも即追加 → 1問でも間違えたら復習モードOK
+    if (!grammarReviewQuestions.some(q => q.q === qObj.q)) {
+      grammarReviewQuestions.push(qObj);
+    }
+    const btnReview = $("btn-grammar-review");
+    if (btnReview) btnReview.disabled = grammarReviewQuestions.length === 0;
   }
 
   $("grammar-progress").textContent = `正解数 ${grammarCorrect} / ${grammarIndex + 1}`;
@@ -351,7 +362,13 @@ function showGrammarResult() {
   else msg += " 苦手パターンを中心に復習しましょう。";
   $("grammar-feedback").textContent = msg;
 
-  grammarReviewQuestions = grammarMistakeList.slice();
+  // ★ ここでも一応、今回のミスを復習リストにマージしておく
+  grammarMistakeList.forEach(q => {
+    if (!grammarReviewQuestions.some(g => g.q === q.q)) {
+      grammarReviewQuestions.push(q);
+    }
+  });
+
   const btnReview = $("btn-grammar-review");
   if (btnReview) btnReview.disabled = grammarReviewQuestions.length === 0;
 
@@ -468,7 +485,8 @@ function stopPronRecording() {
     "日本語でやさしく説明してください。\n\n" +
     "【学習者の英文】\n" + text
   ).then(reply => {
-    $("pron-feedback").textContent = reply;
+    const textReply = normalizeReplyToString(reply);
+    $("pron-feedback").textContent = textReply;
     $("pron-status").textContent = "結果が表示されました。";
   }).catch(e => {
     console.log(e);
@@ -477,15 +495,7 @@ function stopPronRecording() {
   });
 }
 
-// ===== AI英語チャット =====
-function addChatBubble(logEl, text, isUser) {
-  const div = document.createElement("div");
-  div.className = "chat-bubble " + (isUser ? "user" : "bot");
-  div.textContent = text;
-  logEl.appendChild(div);
-  logEl.scrollTop = logEl.scrollHeight;
-}
-
+// ===== AIチャット共通 =====
 async function callChatAPI(message) {
   const res = await fetch(API_ENDPOINT, {
     method: "POST",
@@ -493,12 +503,40 @@ async function callChatAPI(message) {
     body: JSON.stringify({ message })
   });
   const data = await res.json();
-  if (data.reply) return data.reply;
+  if (data.reply) return data.reply;     // 文字列 or {en, jp,...} を想定
   if (data.error) {
-    return "⚠ エラー: " + data.error + "\n詳細: " +
-      JSON.stringify(data.detail || "", null, 2);
+    return {
+      en: "",
+      jp: "⚠ エラー: " + data.error + "\n詳細: " +
+          JSON.stringify(data.detail || "", null, 2)
+    };
   }
-  return "⚠ 不明なエラーが発生しました。";
+  return { en: "", jp: "⚠ 不明なエラーが発生しました。" };
+}
+
+// data.reply がオブジェクトでも文字列でも安全に扱うためのヘルパー
+function normalizeReplyToString(reply) {
+  if (typeof reply === "string") return reply;
+  if (reply && typeof reply === "object") {
+    // {en, jp} 形式なら整えて返す
+    if (reply.en || reply.jp) {
+      let s = "";
+      if (reply.en) s += "EN: " + reply.en + "\n";
+      if (reply.jp) s += "JP: " + reply.jp;
+      return s.trim();
+    }
+    return JSON.stringify(reply);
+  }
+  return String(reply ?? "");
+}
+
+// ===== AI英語チャット（テキスト） =====
+function addChatBubble(logEl, text, isUser) {
+  const div = document.createElement("div");
+  div.className = "chat-bubble " + (isUser ? "user" : "bot");
+  div.textContent = text;
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
 }
 
 function openChatScreen() {
@@ -531,7 +569,8 @@ async function handleChatSend(customText) {
 
   try {
     const reply = await callChatAPI(text);
-    thinking.textContent = reply;
+    const textReply = normalizeReplyToString(reply);
+    thinking.textContent = textReply;
   } catch (e) {
     thinking.textContent = "エラー: " + e.toString();
   }
@@ -657,7 +696,7 @@ function startTalkRecording() {
 
   talkFinalText = "";
   talkListening = true;
-  $("talk-status").textContent = "録音中… 話し終わったら停止ボタンを押してください。";
+  $("talk-status").textContent = "録音中… 話し終わったら「停止して返事をもらう」を押してください。";
   $("talk-heard").textContent = "Listening...";
 
   try {
@@ -692,18 +731,24 @@ function stopTalkRecordingAndSend() {
     "EN: （英語の返事）\nJP: （日本語訳）\n\n" +
     "【学習者の発話】\n" + text
   ).then(reply => {
-    // 簡単に EN/JP を分ける
-    let en = reply;
+    // ここで reply が文字列でもオブジェクトでも安全に扱う
+    const replyStr = normalizeReplyToString(reply);
+
+    // シンプルに "EN:" と "JP:" で分割
+    let en = replyStr;
     let jp = "";
-    const idx = reply.indexOf("JP:");
+    const idx = replyStr.indexOf("JP:");
     if (idx !== -1) {
-      en = reply.slice(0, idx).replace(/^EN:\s*/i, "").trim();
-      jp = reply.slice(idx).replace(/^JP:\s*/i, "").trim();
+      en = replyStr.slice(0, idx).replace(/^EN:\s*/i, "").trim();
+      jp = replyStr.slice(idx).replace(/^JP:\s*/i, "").trim();
     }
-    const finalText = jp ? `EN: ${en}\nJP: ${jp}` : reply;
+
+    const finalText = jp ? `EN: ${en}\nJP: ${jp}` : replyStr;
     addTalkMessage(finalText, false);
     $("talk-status").textContent = "マイクでまた話しかけてみてください。";
-    speakEnglish(en || reply);
+
+    // ★ 英語部分だけ音声で返す
+    speakEnglish(en || replyStr);
   }).catch(e => {
     console.log(e);
     addTalkMessage("エラー: " + e.toString(), false);
@@ -729,13 +774,13 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   // 単語クイズ
-  $("btn-start").onclick    = () => startWordQuiz(false);
-  $("btn-review").onclick   = () => startWordQuiz(true);
-  $("btn-next").onclick     = () => { playSE(seNext); wordIndex++; renderWordQuestion(); };
-  $("btn-quit").onclick     = () => { playSE(seClick); showScreen("screen-home"); };
-  $("btn-again").onclick    = () => startWordQuiz(false);
-  $("btn-back-home").onclick= () => { playSE(seClick); showScreen("screen-home"); };
-  $("btn-go-review").onclick= () => startWordQuiz(true);
+  $("btn-start").onclick     = () => startWordQuiz(false);
+  $("btn-review").onclick    = () => startWordQuiz(true);
+  $("btn-next").onclick      = () => { playSE(seNext); wordIndex++; renderWordQuestion(); };
+  $("btn-quit").onclick      = () => { playSE(seClick); showScreen("screen-home"); };
+  $("btn-again").onclick     = () => startWordQuiz(false);
+  $("btn-back-home").onclick = () => { playSE(seClick); showScreen("screen-home"); };
+  $("btn-go-review").onclick = () => startWordQuiz(true);
 
   $("btn-review").disabled    = true;
   $("btn-go-review").disabled = true;
@@ -757,8 +802,8 @@ window.addEventListener("DOMContentLoaded", () => {
   $("btn-chat").onclick       = openChatScreen;
   $("btn-chat-send").onclick  = () => handleChatSend();
   $("btn-chat-back").onclick  = () => { playSE(seClick); showScreen("screen-home"); };
-  $("btn-chat-example").onclick= () => handleChatSend("今日の単語で例文を作って");
-  $("btn-chat-sales").onclick  = () => handleChatSend("営業のシーンで使える表現を教えて");
+  $("btn-chat-example").onclick = () => handleChatSend("今日の単語で例文を作って");
+  $("btn-chat-sales").onclick   = () => handleChatSend("営業のシーンで使える表現を教えて");
   const chatInput = $("chat-input");
   if (chatInput) {
     chatInput.addEventListener("keydown", e => {
