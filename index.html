@@ -6,43 +6,81 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <div id="app">
+  <div class="app">
 
-    <!-- ====================== ホーム画面 ====================== -->
+    <!-- ヘッダー（キャラクター＋レベル） -->
+    <header class="app-header">
+      <div class="avatar-wrap">
+        <div class="avatar-circle">
+          <div class="avatar-face">😊</div>
+        </div>
+        <div class="avatar-info">
+          <div class="avatar-name">AIコーチ「おにぎり先生」</div>
+          <div id="level-label" class="level-label">Lv.1 ビギナー</div>
+          <div class="level-bar">
+            <div id="level-progress-inner" class="level-progress-inner"></div>
+          </div>
+          <div id="level-progress-text" class="level-progress-text">
+            次のレベルまで 0 / 20 問
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== ホーム画面 ===== -->
     <section id="screen-home" class="screen active">
       <h1 class="app-title">TOEIC600ブートキャンプ</h1>
-      <p class="app-sub">単語・文法・発音・AIチャットで600点突破を目指そう</p>
+      <p class="app-sub">スマホでサクッと、毎日ちょっとずつレベルアップ</p>
 
-      <div class="card">
-        <p>今日のメニュー：</p>
-        <p><strong>単語クイズ → 文法クイズ → 発音トレーニング → AIチャット＆AI英会話</strong></p>
-
-        <div class="progress-wrap">
-          <div class="progress-label">単語クイズの進捗</div>
-          <div class="progress-bar">
-            <div id="progress-inner" class="progress-inner"></div>
-          </div>
-          <div id="progress-text" class="progress-text">0 / 20</div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">これまで解いた問題</div>
+          <div id="stat-total" class="stat-value">0 問</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">これまでの正解数</div>
+          <div id="stat-correct" class="stat-value">0 問</div>
         </div>
       </div>
 
-      <button id="btn-start" class="btn primary">単語クイズを始める</button>
-      <button id="btn-review" class="btn secondary" disabled>復習モード（単語）</button>
-      <button id="btn-grammar" class="btn secondary">文法クイズ（穴埋め）</button>
-      <button id="btn-grammar-review" class="btn secondary" disabled>文法復習モード</button>
-      <button id="btn-pronunciation" class="btn secondary">発音トレーニング</button>
-      <button id="btn-chat" class="btn secondary">AI英語チャット</button>
-      <button id="btn-talk" class="btn secondary">AI英会話（Onitama）</button>
+      <div class="menu-grid">
+        <button id="btn-start" class="menu-btn primary">
+          単語クイズ
+          <span class="menu-sub">TOEIC必須単語を4択でトレーニング</span>
+        </button>
+        <button id="btn-review" class="menu-btn">
+          復習モード（単語）
+          <span class="menu-sub">間違えた単語だけを復習</span>
+        </button>
+        <button id="btn-grammar" class="menu-btn">
+          文法クイズ（穴埋め）
+          <span class="menu-sub">Part5対策の頻出パターン</span>
+        </button>
+        <button id="btn-grammar-review" class="menu-btn">
+          復習モード（文法）
+          <span class="menu-sub">苦手な文法だけもう一度</span>
+        </button>
+        <button id="btn-pronounce" class="menu-btn accent">
+          発音トレーニング
+          <span class="menu-sub">マイクで話してAIが英文チェック</span>
+        </button>
+        <button id="btn-chat" class="menu-btn">
+          AI英語チャット
+          <span class="menu-sub">英語なんでも質問できる</span>
+        </button>
+        <button id="btn-talk" class="menu-btn">
+          AI英会話（おにぎり先生）
+          <span class="menu-sub">話しかけると英語で返事＋日本語訳</span>
+        </button>
+      </div>
     </section>
 
-
-    <!-- ====================== 単語クイズ ====================== -->
+    <!-- ===== 単語クイズ画面 ===== -->
     <section id="screen-quiz" class="screen">
       <div class="top-bar">
+        <span id="quiz-mode-label">本番モード（単語）</span>
         <span id="quiz-counter">1 / 20</span>
-        <span id="quiz-mode-label">本番モード</span>
       </div>
 
       <div class="card">
@@ -51,17 +89,24 @@
 
         <div id="choices" class="choices"></div>
         <p id="feedback" class="feedback"></p>
+
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div id="progress-inner" class="progress-inner"></div>
+          </div>
+          <div id="progress-text" class="progress-text">0 / 20</div>
+        </div>
       </div>
 
-      <button id="btn-next" class="btn primary" style="display:none;">次へ</button>
-      <button id="btn-quit" class="btn text-btn">ホームに戻る</button>
+      <div class="btn-row">
+        <button id="btn-next" class="btn primary" style="display:none;">次の問題へ</button>
+        <button id="btn-quit" class="btn text-btn">ホームに戻る</button>
+      </div>
     </section>
 
-
-    <!-- ====================== 結果画面 ====================== -->
+    <!-- ===== 単語クイズ結果画面 ===== -->
     <section id="screen-result" class="screen">
-      <h2 class="result-title">クイズ結果</h2>
-
+      <h2 class="result-title">結果</h2>
       <div class="card">
         <p id="result-score" class="result-score">正解数 0 / 20</p>
         <p id="result-rate" class="result-rate">正答率 0%</p>
@@ -69,25 +114,25 @@
       </div>
 
       <div class="card" id="result-mistakes-box">
-        <p class="result-subtitle">要復習問題</p>
+        <p class="result-subtitle">要復習単語</p>
         <ul id="mistake-list" class="word-list"></ul>
       </div>
 
-      <button id="btn-again" class="btn primary">もう一度 解く</button>
-      <button id="btn-go-review" class="btn secondary" disabled>復習モードで解き直す</button>
-      <button id="btn-back-home" class="btn text-btn">ホームへ</button>
+      <div class="btn-row">
+        <button id="btn-again" class="btn primary">もう一度 単語クイズ</button>
+        <button id="btn-go-review" class="btn secondary" disabled>復習モードで解き直す</button>
+        <button id="btn-back-home" class="btn text-btn">ホームへ</button>
+      </div>
     </section>
 
-
-    <!-- ====================== 文法クイズ ====================== -->
+    <!-- ===== 文法クイズ画面 ===== -->
     <section id="screen-grammar" class="screen">
       <div class="top-bar">
-        <span id="grammar-mode-label">文法クイズ（例文穴埋め）</span>
+        <span id="grammar-mode-label">通常モード（文法）</span>
         <span id="grammar-counter">1 / 10</span>
       </div>
-
       <div class="card">
-        <p class="direction">文中の (_____) に入る最も適切な語を選んでください。</p>
+        <p class="direction">文中の (_____) に入る語を選んでください。</p>
         <p id="grammar-question" class="question-sentence">
           She (_____) the report yesterday.
         </p>
@@ -96,119 +141,87 @@
         <p id="grammar-feedback" class="feedback"></p>
         <p id="grammar-progress" class="grammar-progress">正解数 0 / 0</p>
       </div>
-
-      <button id="btn-grammar-next" class="btn primary" style="display:none;">次の問題へ</button>
-      <button id="btn-grammar-back" class="btn text-btn">ホームに戻る</button>
+      <div class="btn-row">
+        <button id="btn-grammar-next" class="btn primary" style="display:none;">次の問題へ</button>
+        <button id="btn-grammar-back" class="btn text-btn">ホームに戻る</button>
+      </div>
     </section>
 
-
-    <!-- ====================== 発音トレーニング ====================== -->
-    <section id="screen-pronunciation" class="screen">
+    <!-- ===== 発音トレーニング画面 ===== -->
+    <section id="screen-pronounce" class="screen">
       <div class="top-bar">
         <span>発音トレーニング</span>
       </div>
-
       <div class="card">
-        <p class="direction">
-          「🎙 マイクで話す」を押してから、英語で話してみてください。<br>
-          話し終わったら「■ 停止（チェック）」を押すと、AIコーチが文法と表現をフィードバックします。
+        <p id="pron-status" class="direction">
+          「マイクで話す」を押して、英語で自由に話してみましょう。
         </p>
-        <p class="small-note">
-          例：自己紹介、今日の出来事、仕事の内容 など自由にOK。
+        <p class="shadow-label">認識された英文</p>
+        <p id="pron-text" class="shadow-sentence">
+          ここにあなたの英語が表示されます。
         </p>
       </div>
-
       <div class="card">
-        <p class="shadow-label">認識された英語</p>
-        <p id="pron-text" class="recognized-text">まだ何も話していません。</p>
+        <p class="shadow-label">AIフィードバック</p>
+        <p id="pron-feedback" class="shadow-translation">
+          文法や表現について、AIが日本語で簡単にコメントします。
+        </p>
       </div>
-
-      <div class="card">
-        <p class="shadow-label">AIコーチのフィードバック</p>
-        <p id="pron-feedback" class="recognized-text">ここにアドバイスが表示されます。</p>
-      </div>
-
-      <div class="shadow-controls">
-        <button id="btn-pron-start" class="btn primary">🎙 マイクで話す</button>
-        <button id="btn-pron-stop" class="btn secondary">■ 停止（チェック）</button>
-        <button id="btn-pron-back" class="btn text-btn">ホームに戻る</button>
+      <div class="btn-row">
+        <button id="btn-pron-start" class="btn primary">マイクで話す</button>
+        <button id="btn-pron-stop" class="btn secondary">停止してチェック</button>
+        <button id="btn-pron-back" class="btn text-btn">ホームへ</button>
       </div>
     </section>
 
-
-    <!-- ====================== AI英語チャット ====================== -->
+    <!-- ===== AI英語チャット画面 ===== -->
     <section id="screen-chat" class="screen">
       <div class="top-bar">
         <span>AI英語チャット</span>
-        <span class="chat-subtitle">英語なんでも相談</span>
       </div>
-
       <div class="card chat-card">
         <div id="chat-log" class="chat-log"></div>
       </div>
-
       <div class="chat-quick">
         <button id="btn-chat-example" class="btn secondary">今日の単語で例文を作って</button>
-        <button id="btn-chat-sales" class="btn secondary">営業のシーンで使える表現を教えて</button>
+        <button id="btn-chat-sales" class="btn secondary">営業シーンの表現を教えて</button>
       </div>
-
       <div class="chat-input-row">
         <input id="chat-input" class="chat-input" type="text"
                placeholder="例）increase を使ってビジネスの例文を作って" />
         <button id="btn-chat-send" class="btn primary chat-send-btn">送信</button>
       </div>
-
       <button id="btn-chat-back" class="btn text-btn">ホームに戻る</button>
     </section>
 
-
-    <!-- ====================== AI英会話（Onitama：音声会話） ====================== -->
+    <!-- ===== AI英会話画面 ===== -->
     <section id="screen-talk" class="screen">
       <div class="top-bar">
-        <span>AI英会話（Onitama）</span>
-        <span class="chat-subtitle">おにぎりくんと英語でおしゃべり</span>
+        <span>AI英会話（おにぎり先生）</span>
       </div>
-
-      <div class="card talk-header">
-        <div class="char-avatar">
-          <div class="char-face">🍙</div>
-        </div>
-        <div class="talk-intro">
-          <p class="direction">
-            マイクをオンにして英語で話すと、Onigiri-kun が英語で返事をしてくれます。<br>
-            画面には英語の返事と、その日本語訳が表示されます（音声は英語のみ）。
-          </p>
-          <p class="small-note">
-            例：Where are you from? / Can we practice self-introduction? など。
-          </p>
-        </div>
-      </div>
-
       <div class="card chat-card">
         <div id="talk-log" class="chat-log"></div>
       </div>
-
       <div class="card">
-        <p class="shadow-label">認識中の英語</p>
-        <p id="talk-heard" class="recognized-text">
-          「🎙 マイクで話す」を押してから、英語で話してみてください。
+        <p class="shadow-label">認識された英語</p>
+        <p id="talk-heard" class="shadow-sentence">(ここにあなたの英語が表示されます)</p>
+        <p id="talk-status" class="shadow-translation">
+          マイクをオンにして、ゆっくりハッキリ英語で話してみてください。
         </p>
-        <p id="talk-status" class="small-note">ステータス：待機中</p>
       </div>
-
-      <div class="shadow-controls">
-        <button id="btn-talk-start" class="btn primary">🎙 マイクで話す</button>
-        <button id="btn-talk-stop" class="btn secondary">■ 停止して Onigiri-kun に送る</button>
+      <div class="btn-row">
+        <button id="btn-talk-start" class="btn primary">マイクで話す</button>
+        <button id="btn-talk-stop" class="btn secondary">停止して返事をもらう</button>
         <button id="btn-talk-back" class="btn text-btn">ホームに戻る</button>
       </div>
     </section>
 
   </div>
 
-  <!-- ====================== 効果音 ====================== -->
+  <!-- 効果音 -->
   <audio id="se-correct" src="sounds/correct.wav"></audio>
-  <audio id="se-next"    src="sounds/next.wav"></audio>
   <audio id="se-wrong"   src="sounds/wrong.wav"></audio>
+  <audio id="se-next"    src="sounds/next.wav"></audio>
   <audio id="se-click"   src="sounds/click.wav"></audio>
 
   <script src="script.js"></script>
